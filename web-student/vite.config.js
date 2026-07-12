@@ -1,0 +1,40 @@
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import AutoImport from 'unplugin-vue-components/vite'
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [
+    vue(),
+    // Element Plus 按需引入（自动导入组件 + 样式）
+    AutoImport({
+      resolvers: [ElementPlusResolver()],
+    }),
+    Components({
+      resolvers: [ElementPlusResolver()],
+    }),
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
+  server: {
+    port: 5174,  // live（注：实际端口=5174，5175/5173 都是 typo）
+    open: false,
+    proxy: {
+      // 业务接口 → 9899 training-api（注：8081 端口被僵尸进程死锁，改用 9899）
+      '/api': {
+        target: 'http://localhost:9899',
+        changeOrigin: true,
+      },
+      // 登录接口 → 9898 training-admin（仅 /admin/login 用）
+      '/admin': {
+        target: 'http://localhost:9898',
+        changeOrigin: true,
+      },
+    },
+  },
+})

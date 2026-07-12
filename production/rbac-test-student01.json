@@ -1,0 +1,8 @@
+[
+  ["snapshot", "-i"],
+  ["fill", "@e3", "student01"],
+  ["fill", "@e4", "123456"],
+  ["click", "@e2"],
+  ["wait", "2000"],
+  ["snapshot", "-i"]
+]

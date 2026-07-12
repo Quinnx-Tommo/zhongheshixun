@@ -1,0 +1,162 @@
+/* pages/exam/list/list.wxss */
+.exam-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding-bottom: 40rpx;
+}
+
+/* Tab 栏 */
+.tab-bar {
+  display: flex;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1rpx solid var(--border);
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 28rpx 0;
+  font-size: 30rpx;
+  color: var(--text-secondary);
+  position: relative;
+}
+
+.tab-item.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.tab-line {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background: var(--primary);
+  border-radius: 2rpx;
+}
+
+/* 考试卡片 */
+.exam-card {
+  background: #fff;
+  border-radius: var(--radius);
+  margin: 24rpx;
+  padding: 28rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.exam-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.exam-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  margin-right: 16rpx;
+}
+
+.exam-status {
+  font-size: 24rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  flex-shrink: 0;
+}
+
+.exam-status.pending {
+  background: #fff7e6;
+  color: var(--warning);
+}
+
+.exam-status.done {
+  background: #f6ffed;
+  color: var(--success);
+}
+
+/* 元数据 */
+.exam-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.meta-label {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.meta-value {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.meta-value.highlight {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.meta-value.score {
+  color: var(--success);
+  font-weight: 600;
+  font-size: 28rpx;
+}
+
+/* 操作按钮 */
+.exam-action {
+  border-top: 1rpx solid var(--border);
+  padding-top: 20rpx;
+}
+
+.btn-exam {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  padding: 16rpx 0;
+  text-align: center;
+}
+
+.btn-exam.disabled {
+  background: #d9d9d9;
+  color: #999;
+}
+
+.btn-result {
+  background: #f0f5ff;
+  color: var(--primary);
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  padding: 16rpx 0;
+  text-align: center;
+}
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  padding: 200rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+}
+
+.empty-text {
+  color: var(--text-muted);
+  font-size: 28rpx;
+}

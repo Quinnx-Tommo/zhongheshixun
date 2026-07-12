@@ -1,0 +1,59 @@
+<!--pages/profile/records/records.wxml-->
+<!-- 学习记录：考试记录时间线 -->
+<view class="page">
+  <!-- 首次加载骨架屏 -->
+  <block wx:if="{{loading && records.length === 0}}">
+    <view class="timeline-item" wx:for="{{[1,2,3]}}" wx:key="*this">
+      <view class="timeline-left">
+        <view class="dot skeleton" style="width:24rpx;height:24rpx;border-radius:50%;"></view>
+      </view>
+      <view class="card skeleton-card">
+        <view class="skeleton" style="width:60%;height:32rpx;"></view>
+        <view class="skeleton" style="width:40%;height:24rpx;margin-top:16rpx;"></view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 空态 -->
+  <view class="empty" wx:elif="{{!loading && records.length === 0}}">
+    <view class="empty-icon">📝</view>
+    <view class="empty-text">暂无考试记录</view>
+    <view class="empty-tip">完成考试后这里会显示成绩</view>
+  </view>
+
+  <!-- 时间线 -->
+  <view class="timeline">
+    <view class="timeline-item {{item.passed ? 'passed' : 'failed'}}" wx:for="{{records}}" wx:key="id" data-id="{{item.id}}" bindtap="goRecord">
+      <!-- 左侧圆点 + 竖线 -->
+      <view class="timeline-left">
+        <view class="dot"></view>
+        <view class="line" wx:if="{{index < records.length - 1}}"></view>
+      </view>
+
+      <!-- 右侧卡片 -->
+      <view class="card">
+        <view class="card-header">
+          <text class="card-title">{{item.examTitle}}</text>
+          <text class="badge {{item.passed ? 'badge-pass' : 'badge-fail'}}">{{item.passed ? '通过' : '未通过'}}</text>
+        </view>
+        <view class="card-body">
+          <view class="stat">
+            <text class="stat-label">分数</text>
+            <text class="stat-value">{{item.score}}</text>
+          </view>
+          <view class="stat">
+            <text class="stat-label">答对</text>
+            <text class="stat-value">{{item.correctCount}}/{{item.totalCount}}</text>
+          </view>
+          <view class="stat" wx:if="{{item.duration}}">
+            <text class="stat-label">用时</text>
+            <text class="stat-value">{{item.duration}}分钟</text>
+          </view>
+        </view>
+        <view class="card-footer">
+          <text class="submit-time">提交于 {{item.submitTime}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

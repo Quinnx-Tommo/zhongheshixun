@@ -1,0 +1,41 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/profile/profile",
+    "pages/course/list/list",
+    "pages/course/detail/detail",
+    "pages/course/study/study",
+    "pages/course/my-courses/my-courses",
+    "pages/exam/list/list",
+    "pages/exam/do/do",
+    "pages/exam/result/result",
+    "pages/plan/plan",
+    "pages/plan/detail/detail",
+    "pages/consult/index/index",
+    "pages/profile/records/records",
+    "pages/profile/settings/settings"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#1677ff",
+    "navigationBarTitleText": "基层卫生培训",
+    "navigationBarTextStyle": "white",
+    "enablePullDownRefresh": true
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#1677ff",
+    "backgroundColor": "#fff",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/plan/plan", "text": "计划" },
+      { "pagePath": "pages/course/my-courses/my-courses", "text": "学习" },
+      { "pagePath": "pages/consult/index/index", "text": "咨询" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

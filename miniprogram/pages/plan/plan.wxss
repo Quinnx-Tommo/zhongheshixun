@@ -1,0 +1,195 @@
+/* miniprogram/pages/plan/plan.wxss */
+.plan-page {
+  padding-bottom: 40rpx;
+}
+
+/* 头部卡片 */
+.header-card {
+  position: relative;
+  margin: 20rpx;
+  border-radius: 16rpx;
+  padding: 40rpx 30rpx;
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  overflow: hidden;
+}
+.header-bg {
+  position: absolute;
+  top: -60rpx;
+  right: -60rpx;
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+.header-title {
+  position: relative;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #fff;
+}
+.header-sub {
+  position: relative;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 8rpx;
+}
+
+/* 学习数据 */
+.stats-card {
+  display: flex;
+  background: #fff;
+  margin: 20rpx;
+  border-radius: 16rpx;
+  padding: 30rpx 0;
+}
+.stats-item {
+  flex: 1;
+  text-align: center;
+  border-right: 1rpx solid var(--border);
+}
+.stats-item:last-child {
+  border-right: none;
+}
+.stats-num {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #52c41a;
+}
+.stats-label {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-top: 6rpx;
+}
+
+/* 月度进度 */
+.progress-card {
+  background: #fff;
+  margin: 20rpx;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+.progress-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  padding-left: 16rpx;
+  border-left: 6rpx solid #52c41a;
+}
+.progress-pct {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #52c41a;
+}
+.progress-bar {
+  height: 16rpx;
+  background: #f0f0f0;
+  border-radius: 999rpx;
+  overflow: hidden;
+}
+.progress-inner {
+  height: 100%;
+  background: linear-gradient(90deg, #52c41a, #73d13d);
+  border-radius: 999rpx;
+  transition: width 0.4s;
+}
+.progress-tip {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-top: 16rpx;
+}
+
+/* 标题 */
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin: 30rpx 30rpx 16rpx;
+  padding-left: 16rpx;
+  border-left: 6rpx solid var(--primary);
+}
+
+/* 计划列表 */
+.plan-card {
+  background: #fff;
+  margin: 0 20rpx 20rpx;
+  border-radius: 12rpx;
+  padding: 24rpx;
+}
+.plan-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+.plan-name {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 500;
+}
+.plan-status {
+  font-size: 24rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  margin-left: 16rpx;
+}
+.plan-status.done {
+  background: #f0fae5;
+  color: #52c41a;
+}
+.plan-status.doing {
+  background: #e6f7ff;
+  color: #1677ff;
+}
+.plan-status.todo {
+  background: #f5f5f5;
+  color: #999;
+}
+.plan-meta {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 16rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+.plan-type {
+  background: #f5f5f5;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+}
+.plan-type.required {
+  background: #fff4e6;
+  color: #fa8c16;
+}
+.plan-progress {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.plan-progress-bar {
+  flex: 1;
+  height: 12rpx;
+  background: #f0f0f0;
+  border-radius: 999rpx;
+  overflow: hidden;
+}
+.plan-progress-inner {
+  height: 100%;
+  background: linear-gradient(90deg, #1677ff, #4096ff);
+  border-radius: 999rpx;
+}
+.plan-progress-text {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  padding: 80rpx 0;
+  color: var(--text-muted);
+}

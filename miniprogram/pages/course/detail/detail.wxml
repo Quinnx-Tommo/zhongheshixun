@@ -1,0 +1,50 @@
+<!-- pages/course/detail/detail.wxml -->
+<view class="course-detail-page" wx:if="{{detail}}">
+  <!-- 课程封面 -->
+  <view class="course-cover">课程封面</view>
+
+  <!-- 课程基本信息 -->
+  <view class="course-info">
+    <view class="course-title">{{detail.title}}</view>
+    <view class="course-meta">
+      <text class="meta-item">讲师：{{detail.teacherName || '专家团队'}}</text>
+      <text class="meta-item">学时：{{detail.totalHours}}</text>
+    </view>
+    <view class="course-tag">{{detail.courseTypeText || (detail.courseType === 2 ? '必修课' : '公开课')}}</view>
+    <view class="course-desc">{{detail.description}}</view>
+  </view>
+
+  <!-- 学习进度 -->
+  <view class="section" wx:if="{{enrolled}}">
+    <view class="section-title">我的学习进度</view>
+    <view class="progress-tip">已报名，下方章节可开始学习</view>
+  </view>
+
+  <!-- 章节列表 -->
+  <view class="section">
+    <view class="section-title">课程章节（共{{detail.chapters.length}}节）</view>
+    <view class="chapter-item"
+          wx:for="{{detail.chapters}}"
+          wx:key="id"
+          wx:for-item="chapter">
+      <view class="chapter-index">{{index + 1}}</view>
+      <view class="chapter-info">
+        <view class="chapter-title">{{chapter.title}}</view>
+        <view class="chapter-duration">时长：{{chapter.duration}}秒</view>
+        <view class="chapter-progress" wx:if="{{progress && progress[index]}}">进度：{{progress[index].progress}}%</view>
+      </view>
+      <view class="chapter-arrow">›</view>
+    </view>
+  </view>
+
+  <!-- 底部固定操作栏 -->
+  <view class="bottom-bar">
+    <view class="btn-enroll {{enrolled ? 'enrolled' : ''}}" bindtap="onEnroll">
+      {{enrolled ? '已报名' : '报名课程'}}
+    </view>
+    <view class="btn-learn" bindtap="onStartLearn">{{enrolled ? '开始学习' : '先报名再学习'}}</view>
+  </view>
+</view>
+
+<!-- 加载中 -->
+<view wx:elif="{{loading}}" class="empty">加载中...</view>

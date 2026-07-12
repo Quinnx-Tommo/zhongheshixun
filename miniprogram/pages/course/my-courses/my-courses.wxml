@@ -1,0 +1,56 @@
+<!--pages/course/my-courses/my-courses.wxml-->
+<!-- 我的学习：已报名课程列表（含学习进度） -->
+<view class="page">
+  <!-- 首次加载骨架屏 -->
+  <block wx:if="{{loading && list.length === 0}}">
+    <view class="card skeleton-card" wx:for="{{[1,2,3]}}" wx:key="*this">
+      <view class="skeleton" style="width:100%;height:200rpx;border-radius:12rpx;"></view>
+      <view class="skeleton" style="width:60%;height:32rpx;margin-top:24rpx;"></view>
+      <view class="skeleton" style="width:40%;height:24rpx;margin-top:16rpx;"></view>
+    </view>
+  </block>
+
+  <!-- 空态 -->
+  <view class="empty" wx:elif="{{!loading && list.length === 0}}">
+    <view class="empty-icon">📚</view>
+    <view class="empty-text">暂无已报名课程</view>
+    <view class="empty-tip">去课程中心看看吧</view>
+  </view>
+
+  <!-- 课程卡片列表 -->
+  <view class="card course-card" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
+    <!-- 封面 -->
+    <image class="cover" src="{{item.coverUrl}}" mode="aspectFill" wx:if="{{item.coverUrl}}"></image>
+    <view class="cover cover-placeholder" wx:else>
+      <text class="cover-placeholder-text">📖</text>
+    </view>
+
+    <!-- 课程信息 -->
+    <view class="info">
+      <view class="title-row">
+        <text class="title">{{item.title}}</text>
+        <text class="badge badge-{{item.courseType === 2 ? 'required' : 'optional'}}">{{item.courseTypeText}}</text>
+      </view>
+
+      <!-- 进度条 -->
+      <view class="progress-row">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width:{{item.progress}}%;"></view>
+        </view>
+        <text class="progress-text">{{item.progress}}%</text>
+      </view>
+
+      <!-- 底部按钮 -->
+      <view class="action-row">
+        <text class="meta" wx:if="{{item.teacherName}}">讲师：{{item.teacherName}}</text>
+        <view class="btn-study" catchtap="goStudy" data-id="{{item.id}}">继续学习</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部加载提示 -->
+  <view class="footer-tip" wx:if="{{list.length > 0}}">
+    <text wx:if="{{appendLoading}}">加载中...</text>
+    <text wx:elif="{{!hasMore}}">— 没有更多了 —</text>
+  </view>
+</view>

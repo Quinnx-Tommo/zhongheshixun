@@ -1,0 +1,96 @@
+<!-- miniprogram/pages/course/study/study.wxml -->
+<!-- 课程学习页：视频播放器 + 章节切换 + 进度上报 -->
+<view class="page">
+  <!-- 骨架屏：数据未加载时显示 -->
+  <block wx:if="{{loading}}">
+    <view class="skeleton" style="width:100%;height:420rpx;"></view>
+    <view class="skeleton" style="width:60%;height:40rpx;margin:30rpx 20rpx 10rpx;"></view>
+    <view class="skeleton" style="width:40%;height:32rpx;margin:10rpx 20rpx;"></view>
+    <view class="skeleton" style="width:90%;height:80rpx;margin:30rpx 20rpx;"></view>
+  </block>
+
+  <block wx:elif="{{currentChapter}}">
+    <!-- 1. 视频播放器 -->
+    <video
+      id="courseVideo"
+      class="video"
+      src="{{currentChapter.videoUrl}}"
+      poster="{{course.coverUrl}}"
+      controls
+      show-center-play-btn
+      enable-play-gesture
+      custom-cache="{{false}}"
+      bindtimeupdate="onTimeUpdate"
+      binderror="onVideoError"
+    ></video>
+
+    <!-- 2. 当前章节卡 -->
+    <view class="chapter-card">
+      <view class="chapter-meta">
+        <text class="chapter-index">第 {{currentIndex + 1}} 章 / 共 {{chapters.length}} 章</text>
+        <text wx:if="{{(progressMap[currentChapter.id].progress || 0) >= 100}}" class="badge-done">已完成</text>
+      </view>
+      <view class="chapter-title ellipsis">{{currentChapter.title}}</view>
+      <view class="progress-row">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width:{{progressMap[currentChapter.id].progress || 0}}%;"></view>
+        </view>
+        <text class="progress-text">{{progressMap[currentChapter.id].progress || 0}}%</text>
+      </view>
+      <view class="remain-time" wx:if="{{currentChapter.duration > 0}}">
+        剩余时长：{{currentChapter.duration}} 秒
+      </view>
+    </view>
+
+    <!-- 3. 标记学完按钮 -->
+    <view class="action-row">
+      <button
+        wx:if="{{(progressMap[currentChapter.id].progress || 0) < 100}}"
+        class="btn-primary btn-sm"
+        bindtap="onMarkDone"
+      >标记学完</button>
+      <view wx:else class="done-tag">✓ 已完成</view>
+    </view>
+
+    <!-- 4. 课程信息折叠区 -->
+    <view class="course-info">
+      <view class="course-title ellipsis">{{course.title}}</view>
+      <view class="course-sub">
+        <text>讲师：{{course.teacherName || '未知'}}</text>
+        <text class="dot">·</text>
+        <text>总学时：{{course.totalHours || 0}} 小时</text>
+      </view>
+    </view>
+
+    <!-- 5. 章节列表 -->
+    <scroll-view
+      class="chapter-list"
+      scroll-y
+      enhanced
+      show-scrollbar="{{false}}"
+    >
+      <view
+        wx:for="{{chapters}}"
+        wx:key="id"
+        class="chapter-item {{index === currentIndex ? 'active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onSwitchChapter"
+      >
+        <view class="chapter-no {{(progressMap[item.id].progress || 0) >= 100 ? 'done' : ''}}">
+          {{index + 1}}
+        </view>
+        <view class="chapter-info">
+          <view class="chapter-name ellipsis">{{item.title}}</view>
+          <view class="chapter-status">
+            <text wx:if="{{(progressMap[item.id].progress || 0) >= 100}}" class="status-done">已完成</text>
+            <text wx:elif="{{(progressMap[item.id].progress || 0) > 0}}" class="status-doing">已学 {{progressMap[item.id].progress}}%</text>
+            <text wx:else class="status-todo">未开始</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </block>
+
+  <!-- 6. 空态 -->
+  <view wx:else class="empty">暂无章节</view>
+</view>

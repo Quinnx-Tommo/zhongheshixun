@@ -1,0 +1,56 @@
+<!-- miniprogram/pages/consult/index/index.wxml -->
+<view class="page">
+  <!-- 输入区 -->
+  <view class="ask-bar">
+    <textarea
+      class="ask-input"
+      placeholder="请输入您的问题，如：考试没通过可以重考吗？"
+      value="{{question}}"
+      bindinput="onInput"
+      auto-height
+      maxlength="200"
+      confirm-type="send"
+      show-confirm-bar="{{false}}"
+    />
+    <button
+      class="ask-btn {{submitting ? 'ask-btn--disabled' : ''}}"
+      bindtap="onSubmit"
+      disabled="{{submitting}}"
+    >{{submitting ? '提交中...' : '提问'}}</button>
+  </view>
+
+  <!-- 咨询列表 -->
+  <view class="list">
+    <view class="empty" wx:if="{{!loadingList && consults.length === 0}}">
+      暂无咨询记录，快来提问吧
+    </view>
+
+    <view class="card" wx:for="{{consults}}" wx:key="id">
+      <!-- 提问 -->
+      <view class="row question-row">
+        <view class="avatar avatar-q">我</view>
+        <view class="bubble bubble-q">
+          <text>{{item.question}}</text>
+        </view>
+      </view>
+      <!-- 回答 -->
+      <view class="row answer-row" wx:if="{{item.answer}}">
+        <view class="avatar avatar-a">{{item.isAuto === 1 ? '智' : '师'}}</view>
+        <view class="bubble bubble-a">
+          <text>{{item.answer}}</text>
+        </view>
+      </view>
+      <!-- 等待回复 -->
+      <view class="row answer-row" wx:elif="{{!item.answer}}">
+        <view class="avatar avatar-p">等</view>
+        <view class="bubble bubble-p">
+          <text>已提交，等待老师回复</text>
+        </view>
+      </view>
+      <view class="meta">
+        <text>{{item.createTime}}</text>
+        <text wx:if="{{item.replyTime}}" class="meta-tag">{{item.isAuto === 1 ? '智能回复' : '人工回复'}}</text>
+      </view>
+    </view>
+  </view>
+</view>

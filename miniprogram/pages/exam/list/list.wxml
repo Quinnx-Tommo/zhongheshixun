@@ -1,0 +1,75 @@
+<!-- pages/exam/list/list.wxml -->
+<view class="exam-page">
+  <!-- 顶部 Tab -->
+  <view class="tab-bar">
+    <view class="tab-item {{tab === 'all' ? 'active' : ''}}"
+          data-tab="all"
+          bindtap="switchTab">
+      全部
+      <view class="tab-line" wx:if="{{tab === 'all'}}"></view>
+    </view>
+    <view class="tab-item {{tab === 'pending' ? 'active' : ''}}"
+          data-tab="pending"
+          bindtap="switchTab">
+      待考
+      <view class="tab-line" wx:if="{{tab === 'pending'}}"></view>
+    </view>
+    <view class="tab-item {{tab === 'done' ? 'active' : ''}}"
+          data-tab="done"
+          bindtap="switchTab">
+      已考
+      <view class="tab-line" wx:if="{{tab === 'done'}}"></view>
+    </view>
+  </view>
+
+  <!-- 考试列表 -->
+  <view class="exam-list" wx:if="{{filteredList().length > 0}}">
+    <view class="exam-card"
+          wx:for="{{filteredList()}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          data-status="{{item.status}}"
+          data-score="{{item.score}}"
+          data-record-id="{{item.recordId}}"
+          data-title="{{item.title}}"
+          bindtap="goExam">
+      <view class="exam-card-header">
+        <view class="exam-title ellipsis">{{item.title}}</view>
+        <view class="exam-status {{item.status === 1 ? 'done' : 'pending'}}">
+          {{item.status === 1 ? '已考' : '待考'}}
+        </view>
+      </view>
+
+      <view class="exam-meta">
+        <view class="meta-item">
+          <text class="meta-label">时长</text>
+          <text class="meta-value">{{item.duration}} 分钟</text>
+        </view>
+        <view class="meta-item">
+          <text class="meta-label">题数</text>
+          <text class="meta-value">{{item.questionCount}} 题</text>
+        </view>
+        <view class="meta-item" wx:if="{{item.status === 0}}">
+          <text class="meta-label">剩余重考</text>
+          <text class="meta-value highlight">{{item.retryLeft}} 次</text>
+        </view>
+        <view class="meta-item" wx:if="{{item.status === 1}}">
+          <text class="meta-label">得分</text>
+          <text class="meta-value score">{{item.score}}</text>
+        </view>
+      </view>
+
+      <view class="exam-action">
+        <view class="btn-exam" wx:if="{{item.status === 0 && item.retryLeft > 0}}">开始考试</view>
+        <view class="btn-exam disabled" wx:elif="{{item.status === 0 && item.retryLeft === 0}}">无重考次数</view>
+        <view class="btn-result" wx:if="{{item.status === 1}}">查看成绩</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:elif="{{!loading}}">
+    <view class="empty-icon">📝</view>
+    <view class="empty-text">暂无考试</view>
+  </view>
+</view>

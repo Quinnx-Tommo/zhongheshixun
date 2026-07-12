@@ -1,0 +1,149 @@
+/* pages/exam/result/result.wxss */
+.result-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 40rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 结果卡片 */
+.result-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 60rpx 40rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.result-icon {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60rpx;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 20rpx;
+}
+
+.result-icon.pass {
+  background: var(--success);
+}
+
+.result-icon.fail {
+  background: var(--danger);
+}
+
+.result-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 32rpx;
+}
+
+/* 分数 */
+.score-area {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 40rpx;
+}
+
+.score-number {
+  font-size: 96rpx;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.score-unit {
+  font-size: 32rpx;
+  color: var(--text-secondary);
+  margin-left: 8rpx;
+}
+
+/* 统计 */
+.result-stats {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+  width: 100%;
+  justify-content: center;
+  padding-top: 32rpx;
+  border-top: 1rpx solid var(--border);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-value.correct {
+  color: var(--success);
+}
+
+.stat-value.wrong {
+  color: var(--danger);
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-top: 4rpx;
+}
+
+.stat-divider {
+  width: 1rpx;
+  height: 60rpx;
+  background: var(--border);
+}
+
+/* 提示 */
+.result-tip {
+  margin-top: 32rpx;
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* 操作按钮 */
+.result-actions {
+  width: 100%;
+  margin-top: 48rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  padding: 24rpx 0;
+  text-align: center;
+  font-weight: 600;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: var(--text-primary);
+  border: 1rpx solid var(--border);
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  padding: 24rpx 0;
+  text-align: center;
+}

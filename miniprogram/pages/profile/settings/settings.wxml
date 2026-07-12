@@ -1,0 +1,41 @@
+<!--pages/profile/settings/settings.wxml-->
+<!-- 设置：静态菜单 -->
+<view class="page">
+  <!-- 用户信息行 -->
+  <view class="user-row">
+    <image class="avatar" src="{{userInfo.avatarUrl || userInfo.avatar || ''}}" mode="aspectFill" wx:if="{{userInfo.avatarUrl || userInfo.avatar}}"></image>
+    <view class="avatar avatar-placeholder" wx:else>
+      <text class="avatar-placeholder-text">👤</text>
+    </view>
+    <view class="user-meta">
+      <text class="nickname">{{userInfo.nickName || userInfo.nickname || userInfo.realName || '学员'}}</text>
+      <text class="sub" wx:if="{{userInfo.orgName}}">{{userInfo.orgName}}</text>
+      <text class="sub" wx:elif="{{userInfo.phone}}">{{userInfo.phone}}</text>
+    </view>
+  </view>
+
+  <!-- 菜单列表 -->
+  <view class="menu-card">
+    <view class="menu-row" wx:for="{{menuItems}}" wx:key="title" data-handler="{{item.handler}}" bindtap="onMenuTap">
+      <view class="menu-left">
+        <text class="menu-icon">{{item.icon}}</text>
+        <text class="menu-title">{{item.title}}</text>
+      </view>
+      <view class="menu-right">
+        <!-- 清理缓存显示当前大小 -->
+        <text class="menu-extra" wx:if="{{item.title === '清理缓存'}}">{{cacheSize}} KB</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 版本号 -->
+  <view class="version-row">
+    <text class="version-text">版本 {{version}}</text>
+  </view>
+
+  <!-- 退出登录按钮 -->
+  <view class="logout-wrap">
+    <view class="btn-logout" bindtap="onLogout">退出登录</view>
+  </view>
+</view>

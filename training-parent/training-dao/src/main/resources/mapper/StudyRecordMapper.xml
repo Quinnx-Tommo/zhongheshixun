@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.training.mapper.StudyRecordMapper">
+
+    <insert id="upsertProgress">
+        INSERT INTO study_record
+            (student_id, course_id, chapter_id, progress, study_duration, last_position, completed, create_time, update_time)
+        VALUES
+            (#{r.studentId}, #{r.courseId}, #{r.chapterId}, #{r.progress}, #{r.studyDuration},
+             #{r.lastPosition}, #{r.completed}, NOW(), NOW())
+        ON DUPLICATE KEY UPDATE
+            progress = VALUES(progress),
+            study_duration = study_duration + VALUES(study_duration),
+            last_position = VALUES(last_position),
+            completed = VALUES(completed),
+            update_time = NOW()
+    </insert>
+
+</mapper>

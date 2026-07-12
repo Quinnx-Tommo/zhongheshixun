@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.training.mapper.QuestionMapper">
+
+    <resultMap id="BaseResultMap" type="com.training.common.entity.Question">
+        <id column="id" property="id"/>
+        <result column="course_id" property="courseId"/>
+        <result column="knowledge_point_id" property="knowledgePointId"/>
+        <result column="title" property="title"/>
+        <result column="question_type" property="questionType"/>
+        <result column="options" property="options"/>
+        <result column="answer" property="answer"/>
+        <result column="score" property="score"/>
+        <result column="difficulty" property="difficulty"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectQuestionPage" resultMap="BaseResultMap">
+        SELECT * FROM question
+        <where>
+            deleted = 0
+            <if test="title != null and title != ''">
+                AND title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="questionType != null">
+                AND question_type = #{questionType}
+            </if>
+            <if test="difficulty != null">
+                AND difficulty = #{difficulty}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByKnowledgePoints" resultMap="BaseResultMap">
+        SELECT * FROM question
+        WHERE deleted = 0
+          AND knowledge_point_id IN
+          <foreach collection="kpIds" item="id" open="(" separator="," close=")">
+              #{id}
+          </foreach>
+    </select>
+
+    <select id="selectQuestionIdsByKnowledgePoints" resultType="java.lang.Long">
+        SELECT id FROM question
+        WHERE deleted = 0
+          AND knowledge_point_id IN
+          <foreach collection="kpIds" item="id" open="(" separator="," close=")">
+              #{id}
+          </foreach>
+    </select>
+
+</mapper>

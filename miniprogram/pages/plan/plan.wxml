@@ -1,0 +1,67 @@
+<!-- miniprogram/pages/plan/plan.wxml -->
+<view class="plan-page">
+  <!-- 头部卡片 -->
+  <view class="header-card">
+    <view class="header-bg"></view>
+    <view class="header-title">我的学习计划</view>
+    <view class="header-sub">基层卫生继续教育培训</view>
+  </view>
+
+  <!-- 学习数据 -->
+  <view class="stats-card">
+    <view class="stats-item">
+      <view class="stats-num">{{stats.totalCourse}}</view>
+      <view class="stats-label">计划课程</view>
+    </view>
+    <view class="stats-item">
+      <view class="stats-num">{{stats.finished}}</view>
+      <view class="stats-label">已完成</view>
+    </view>
+    <view class="stats-item">
+      <view class="stats-num">{{stats.learning}}</view>
+      <view class="stats-label">学习中</view>
+    </view>
+    <view class="stats-item">
+      <view class="stats-num">{{stats.hours}}</view>
+      <view class="stats-label">学习时长(h)</view>
+    </view>
+  </view>
+
+  <!-- 月度进度 -->
+  <view class="progress-card">
+    <view class="progress-header">
+      <view class="progress-title">本月学习进度</view>
+      <view class="progress-pct">{{monthProgress}}%</view>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-inner" style="width: {{monthProgress}}%"></view>
+    </view>
+    <view class="progress-tip">
+      已完成 {{stats.finished}}/{{stats.totalCourse}} 门课程，继续保持！
+    </view>
+  </view>
+
+  <!-- plan 列表 -->
+  <view class="section-title">培训计划课程</view>
+  <view wx:if="{{planList.length > 0}}">
+    <view class="plan-card" wx:for="{{planList}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
+      <view class="plan-top">
+        <view class="plan-name ellipsis">{{item.title}}</view>
+        <view class="plan-status {{item.progress >= 100 ? 'done' : item.progress > 0 ? 'doing' : 'todo'}}">
+          {{item.progress >= 100 ? '已完成' : item.progress > 0 ? '学习中' : '待学习'}}
+        </view>
+      </view>
+      <view class="plan-meta">
+        <text class="plan-type {{item.courseType === 2 ? 'required' : ''}}">{{item.courseType === 2 ? '必修' : '选修'}}</text>
+        <text class="plan-teacher">{{item.teacher}}</text>
+      </view>
+      <view class="plan-progress">
+        <view class="plan-progress-bar">
+          <view class="plan-progress-inner" style="width: {{item.progress}}%"></view>
+        </view>
+        <text class="plan-progress-text">{{item.progress}}%</text>
+      </view>
+    </view>
+  </view>
+  <view wx:else class="empty">暂无学习计划，请先报名培训课程</view>
+</view>

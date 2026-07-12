@@ -1,0 +1,67 @@
+<!-- pages/exam/do/do.wxml -->
+<view class="do-page" wx:if="{{exam}}">
+  <!-- 顶部：标题 + 倒计时 -->
+  <view class="do-header">
+    <view class="do-title ellipsis">{{exam.title}}</view>
+    <view class="do-timer {{timeLeft < 300 ? 'warning' : ''}}">
+      <text class="timer-icon">⏱</text>
+      <text class="timer-text">{{formattedTime}}</text>
+    </view>
+  </view>
+
+  <!-- 进度条 -->
+  <view class="progress-bar">
+    <view class="progress-text">第 {{currentIndex + 1}} / {{questions.length}} 题</view>
+    <view class="progress-track">
+      <view class="progress-fill" style="width: {{(currentIndex + 1) / questions.length * 100}}%"></view>
+    </view>
+  </view>
+
+  <!-- 题目区 -->
+  <view class="question-area" wx:if="{{questions[currentIndex]}}">
+    <view class="q-type-tag">
+      {{questions[currentIndex].questionType === 1 ? '单选题' : (questions[currentIndex].questionType === 2 ? '多选题' : (questions[currentIndex].questionType === 3 ? '判断题' : '填空题'))}}
+    </view>
+    <view class="q-title">{{questions[currentIndex].title}}</view>
+
+    <!-- 选项区（单选/多选/判断） -->
+    <view class="options" wx:if="{{questions[currentIndex].questionType !== 4}}">
+      <view class="option-item {{isSelected(questions[currentIndex].id, opt) ? 'selected' : ''}}"
+            wx:for="{{questions[currentIndex].options}}"
+            wx:for-item="opt"
+            wx:key="*this"
+            data-qid="{{questions[currentIndex].id}}"
+            data-opt="{{opt}}"
+            data-type="{{questions[currentIndex].questionType}}"
+            bindtap="onSelectOption">
+        <view class="option-marker {{isSelected(questions[currentIndex].id, opt) ? 'selected' : ''}}">
+          {{opt.charAt(0)}}
+        </view>
+        <view class="option-text">{{opt}}</view>
+      </view>
+    </view>
+
+    <!-- 填空题输入 -->
+    <view class="fill-blank" wx:if="{{questions[currentIndex].questionType === 4}}">
+      <input class="blank-input"
+             placeholder="请输入答案"
+             value="{{answers[questions[currentIndex].id]}}"
+             data-qid="{{questions[currentIndex].id}}"
+             bindinput="onFillBlank"
+             maxlength="100" />
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="do-footer">
+    <view class="nav-btn {{currentIndex === 0 ? 'disabled' : ''}}"
+          bindtap="prevQ">
+      上一题
+    </view>
+    <view class="submit-btn" bindtap="submitExam">交卷</view>
+    <view class="nav-btn {{currentIndex === questions.length - 1 ? 'disabled' : ''}}"
+          bindtap="nextQ">
+      下一题
+    </view>
+  </view>
+</view>

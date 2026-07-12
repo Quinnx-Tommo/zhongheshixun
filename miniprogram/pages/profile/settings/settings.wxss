@@ -1,0 +1,125 @@
+/* pages/profile/settings/settings.wxss */
+/* 设置 — 静态菜单 */
+
+.page {
+  min-height: 100vh;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+/* 用户信息行 */
+.user-row {
+  display: flex;
+  align-items: center;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 30rpx 24rpx;
+  margin: 20rpx 0;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+.avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.avatar-placeholder {
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-placeholder-text {
+  font-size: 40rpx;
+}
+.user-meta {
+  margin-left: 24rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+}
+.nickname {
+  font-size: 32rpx;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.sub {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-top: 6rpx;
+}
+
+/* 菜单卡片 */
+.menu-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  margin: 20rpx 0;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+/* 菜单行 */
+.menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100rpx;
+  padding: 0 24rpx;
+  border-bottom: 1rpx solid var(--border);
+}
+.menu-row:last-child {
+  border-bottom: none;
+}
+.menu-left {
+  display: flex;
+  align-items: center;
+}
+.menu-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+.menu-title {
+  font-size: 28rpx;
+  color: var(--text-primary);
+}
+.menu-right {
+  display: flex;
+  align-items: center;
+}
+.menu-extra {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-right: 8rpx;
+}
+.arrow {
+  font-size: 36rpx;
+  color: var(--text-muted);
+}
+
+/* 版本号 */
+.version-row {
+  text-align: center;
+  margin-top: 40rpx;
+}
+.version-text {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+/* 退出登录 */
+.logout-wrap {
+  margin-top: 40rpx;
+  padding: 0 20rpx;
+}
+.btn-logout {
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  background: #fff;
+  color: var(--danger);
+  font-size: 30rpx;
+  border-radius: var(--radius);
+  border: 1rpx solid var(--border);
+}

@@ -1,0 +1,122 @@
+<!-- miniprogram/pages/index/index.wxml -->
+<view class="container">
+  <!-- 1. 用户栏 -->
+  <view class="user-bar" wx:if="{{userInfo}}">
+    <view class="user-info">
+      <view class="avatar">{{userInfo.realName[0] || userInfo.nickname[0]}}</view>
+      <view class="greeting">你好，{{userInfo.realName || userInfo.nickname}}</view>
+    </view>
+    <view class="logout-btn" bindtap="onLogout">退出</view>
+  </view>
+
+  <!-- 2. Banner 轮播（保留 placeholder） -->
+  <swiper class="banner" indicator-dots autoplay interval="4000" circular>
+    <swiper-item wx:for="{{banners}}" wx:key="id">
+      <view class="banner-placeholder">轮播图 {{item.id}}</view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 3. 统计卡片：我的学习 -->
+  <view class="stats-card">
+    <view class="stats-header">
+      <view class="stats-title">我的学习</view>
+      <view class="stats-hint">坚持就是胜利</view>
+    </view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <view class="stat-num">{{stats.courseCount}}</view>
+        <view class="stat-label">已报名</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-num">{{stats.studyHours}}h</view>
+        <view class="stat-label">总学时</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-num">{{stats.completedCourses}}</view>
+        <view class="stat-label">已完课</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-num">{{stats.passRate}}%</view>
+        <view class="stat-label">考试通过率</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 4. 快捷入口网格 -->
+  <view class="entries">
+    <view class="entry-item" wx:for="{{entries}}" wx:key="text"
+          data-url="{{item.url}}" bindtap="onGoTo">
+      <view class="entry-icon">{{item.text[0]}}</view>
+      <text>{{item.text}}</text>
+    </view>
+  </view>
+
+  <!-- 5. 最近学习 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-title">最近学习</view>
+      <view class="section-more" bindtap="onGoMyCourses">全部 ›</view>
+    </view>
+    <view wx:if="{{recentCourses.length > 0}}" class="recent-list">
+      <view class="recent-card" wx:for="{{recentCourses}}" wx:key="id"
+            data-id="{{item.id}}" bindtap="goStudy">
+        <image class="recent-cover" src="{{item.coverUrl}}" mode="aspectFill"
+               wx:if="{{item.coverUrl}}" />
+        <view class="recent-cover placeholder" wx:else>📚</view>
+        <view class="recent-info">
+          <view class="recent-title ellipsis">{{item.title}}</view>
+          <view class="progress-row">
+            <view class="progress-bar">
+              <view class="progress-fill" style="width: {{item.overallProgress || 0}}%;"></view>
+            </view>
+            <view class="progress-text">{{item.overallProgress || 0}}%</view>
+          </view>
+        </view>
+        <view class="recent-btn">继续学习</view>
+      </view>
+    </view>
+    <!-- 最近学习空态引导 -->
+    <view wx:elif="{{!loading}}" class="recent-empty" bindtap="onGoCourseList">
+      <view class="recent-empty-text">去课程中心看看吧 ›</view>
+    </view>
+  </view>
+
+  <!-- 6. 推荐课程 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-title">推荐课程</view>
+      <view class="section-more" bindtap="onGoCourseList">更多 ›</view>
+    </view>
+
+    <!-- 加载中：3 个骨架 -->
+    <view wx:if="{{loading}}" class="skeleton-list">
+      <view class="skeleton-card" wx:for="{{[1,2,3]}}"></view>
+    </view>
+
+    <!-- 空态 -->
+    <view wx:elif="{{recommendList.length === 0}}" class="empty">
+      📚 暂无推荐
+      <view class="empty-tip">先去课程中心报名课程吧</view>
+    </view>
+
+    <!-- 2 列网格 -->
+    <view wx:else class="course-grid">
+      <view class="course-card" wx:for="{{recommendList}}" wx:key="id"
+            data-id="{{item.id}}" bindtap="goDetail">
+        <image class="course-cover" src="{{item.coverUrl}}" mode="aspectFill"
+               wx:if="{{item.coverUrl}}" />
+        <view class="course-cover placeholder" wx:else>📖</view>
+        <view class="course-meta">
+          <view class="course-title ellipsis-2">{{item.title}}</view>
+          <view class="course-foot">
+            <view class="course-tag">{{item.courseTypeText}}</view>
+            <view class="course-hours">{{item.totalHours || 0}} 学时</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 7. 底部安全区留白 -->
+  <view class="safe-bottom"></view>
+</view>

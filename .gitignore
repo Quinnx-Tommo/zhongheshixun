@@ -1,0 +1,114 @@
+# ============ Java / Maven ============
+target/
+*.class
+*.jar
+*.war
+.mvn/
+mvnw
+mvnw.cmd
+HELP.md
+
+# ============ Node / Vue ============
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+.cache/
+.parcel-cache/
+.npm/
+.pnpm-store/
+yarn-error.log
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+
+# ============ IDE / 工具配置 ============
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+nbproject/private/
+nbbuild/
+nbdist/
+
+# AI 工具配置
+.agents/
+.claude/
+.codex/
+.opencode/
+
+# ============ 系统文件 ============
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+
+# ============ 日志 ============
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# ============ 环境配置 / 敏感信息 ============
+application-*.yml
+!application.yml
+application.properties
+.env
+.env.local
+.env.*.local
+
+# ============ Python 临时文件 ============
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ============ 截图 / 调试素材（演示截图不入库） ============
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+!docs/**/*.png
+!docs/**/*.jpg
+!专业文档/**/*.png
+
+# ============ 临时调试脚本 ============
+tmp/
+test_write.txt
+snapshot.json
+test-batch.json
+fix_plan.py
+fix_plan2.py
+fix_plan3.py
+fix_final.py
+fix-all.js
+train-fix.js
+check-plan.js
+write_result.py
+batch_md_to_docx.py
+md_to_docx.py
+
+# ============ PowerDesigner（工具安装文件，不上传） ============
+powerDesigner/
+
+# ============ 微信小程序 ============
+miniprogram/miniprogram_npm/
+miniprogram/unpackage/
+miniprogram/project.private.config.json
+
+# ============ Office 文档锁定文件 ============
+~$*.docx
+~$*.xlsx
+~$*.doc
+
+# ============ 上传构建产物（可选保留） ============
+training-*/target/*.jar.original

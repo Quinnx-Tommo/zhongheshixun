@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.training.mapper.TeacherMapper">
+
+    <resultMap id="BaseResultMap" type="com.training.common.entity.Teacher">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="real_name" property="realName"/>
+        <result column="title" property="title"/>
+        <result column="education" property="education"/>
+        <result column="direction" property="direction"/>
+        <result column="intro" property="intro"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectTeacherPage" resultMap="BaseResultMap">
+        SELECT * FROM teacher
+        <where>
+            deleted = 0
+            <if test="realName != null and realName != ''">
+                AND real_name LIKE CONCAT('%', #{realName}, '%')
+            </if>
+            <if test="direction != null and direction != ''">
+                AND direction LIKE CONCAT('%', #{direction}, '%')
+            </if>
+        </where>
+        ORDER BY id DESC
+    </select>
+
+</mapper>

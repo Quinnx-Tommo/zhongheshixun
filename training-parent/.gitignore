@@ -1,0 +1,35 @@
+# 四川省基层卫生人员网络培训平台
+# 忽略 IDE、构建产物、日志等
+
+# Maven
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.project
+.classpath
+.settings/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 本地配置（含敏感信息）
+application-local.yml
+application-prod.yml
+.env
+
+# 临时文件
+*.tmp
+*.swp

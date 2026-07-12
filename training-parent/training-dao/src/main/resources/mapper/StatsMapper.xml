@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.training.mapper.StatsMapper">
+
+    <!-- ============ 数据概览 ============ -->
+    <select id="selectOverview" resultType="com.training.common.vo.OverviewVO">
+        SELECT
+            (SELECT COUNT(*) FROM sys_user WHERE role_id = 3 AND deleted = 0) AS totalStudents,
+            (SELECT COUNT(*) FROM course WHERE deleted = 0) AS totalCourses,
+            (SELECT COUNT(*) FROM course_enroll WHERE deleted = 0) AS totalEnrollments,
+            (SELECT IFNULL(SUM(study_duration), 0) FROM study_record WHERE deleted = 0) AS totalStudySeconds,
+            (SELECT COUNT(*) FROM exam_record WHERE deleted = 0 AND status = 2) AS totalExamRecords,
+            (SELECT COUNT(*) FROM consult_record WHERE deleted = 0) AS totalConsults
+    </select>
+
+    <select id="countTodayActiveStudents" resultType="long">
+        SELECT COUNT(DISTINCT student_id)
+        FROM study_record
+        WHERE deleted = 0
+          AND update_time &gt;= CURDATE()
+          AND update_time &lt; DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+    </select>
+
+    <!-- ============ 学员微观统计 ============ -->
+    <!--
+        完成率 = 已完成章节数 / 该学员已报名课程的总章节数 * 100
+        MySQL 不支持 FULL OUTER JOIN，这里使用：
+        - LEFT JOIN 子查询 统计每个学员的 完成章节数、学习时长
+        - 考试均分子查询
+    -->
+    <select id="selectStudentStats" resultType="com.training.common.vo.StudentStatVO">
+        SELECT
+            u.id AS studentId,
+            u.real_name AS realName,
+            u.org_name AS orgName,
+            u.job_type AS jobType,
+            IFNULL(ec.cnt, 0) AS enrollCount,
+            ROUND(IFNULL(sd.totalSeconds, 0) / 3600.0, 2) AS totalStudyHours,
+            IFNULL(sd.completed, 0) AS completedChapters,
+            ROUND(
+                CASE WHEN IFNULL(tc.totalChapters, 0) = 0 THEN 0
+                     ELSE IFNULL(sd.completed, 0) * 100.0 / tc.totalChapters
+                END, 2
+            ) AS completionRate,
+            IFNULL(es.avgScore, 0) AS examAvgScore
+        FROM sys_user u
+        -- 报名数
+        LEFT JOIN (
+            SELECT student_id, COUNT(*) AS cnt
+            FROM course_enroll WHERE deleted = 0
+            GROUP BY student_id
+        ) ec ON ec.student_id = u.id
+        -- 学习时长 + 已完成章节数
+        LEFT JOIN (
+            SELECT student_id,
+                   SUM(study_duration) AS totalSeconds,
+                   SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS completed
+            FROM study_record WHERE deleted = 0
+            GROUP BY student_id
+        ) sd ON sd.student_id = u.id
+        -- 已报名课程的总章节数
+        LEFT JOIN (
+            SELECT ce.student_id, COUNT(ch.id) AS totalChapters
+            FROM course_enroll ce
+            JOIN course_chapter ch ON ch.course_id = ce.course_id AND ch.deleted = 0
+            WHERE ce.deleted = 0
+            GROUP BY ce.student_id
+        ) tc ON tc.student_id = u.id
+        -- 考试平均分（仅已批阅）
+        LEFT JOIN (
+            SELECT student_id, AVG(score) AS avgScore
+            FROM exam_record WHERE deleted = 0 AND status = 2
+            GROUP BY student_id
+        ) es ON es.student_id = u.id
+        WHERE u.role_id = 3 AND u.deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (u.real_name LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.username LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="orgName != null and orgName != ''">
+            AND u.org_name = #{orgName}
+        </if>
+        ORDER BY totalStudyHours DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countStudentStats" resultType="long">
+        SELECT COUNT(*)
+        FROM sys_user u
+        WHERE u.role_id = 3 AND u.deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (u.real_name LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.username LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="orgName != null and orgName != ''">
+            AND u.org_name = #{orgName}
+        </if>
+    </select>
+
+    <!-- ============ 考试统计 ============ -->
+    <select id="selectExamStats" resultType="com.training.common.vo.ExamStatVO">
+        SELECT
+            e.id AS examId,
+            e.title AS examTitle,
+            e.pass_score AS passScore,
+            COUNT(er.id) AS participantCount,
+            IFNULL(AVG(er.score), 0) AS avgScore,
+            IFNULL(MAX(er.score), 0) AS maxScore,
+            IFNULL(MIN(er.score), 0) AS minScore,
+            ROUND(
+                CASE WHEN COUNT(er.id) = 0 THEN 0
+                     ELSE SUM(CASE WHEN er.score >= e.pass_score THEN 1 ELSE 0 END) * 100.0 / COUNT(er.id)
+                END, 2
+            ) AS passRate
+        FROM exam e
+        LEFT JOIN exam_record er ON er.exam_id = e.id AND er.deleted = 0 AND er.status = 2
+        WHERE e.deleted = 0
+        <if test="examId != null">
+            AND e.id = #{examId}
+        </if>
+        GROUP BY e.id, e.title, e.pass_score
+        ORDER BY e.id
+    </select>
+
+    <!-- 分数段分布 -->
+    <select id="selectScoreRanges" resultType="com.training.common.vo.ExamStatVO$ScoreRangeVO">
+        SELECT
+            CASE
+                WHEN er.score &lt; 60 THEN '0-59'
+                WHEN er.score &lt; 70 THEN '60-69'
+                WHEN er.score &lt; 80 THEN '70-79'
+                WHEN er.score &lt; 90 THEN '80-89'
+                ELSE '90-100'
+            END AS `range`,
+            COUNT(*) AS `count`
+        FROM exam_record er
+        JOIN exam e ON e.id = er.exam_id
+        WHERE er.deleted = 0 AND er.status = 2
+        <if test="examId != null">
+            AND er.exam_id = #{examId}
+        </if>
+        GROUP BY `range`
+        ORDER BY `range`
+    </select>
+
+    <!-- ============ 课程热度统计 ============ -->
+    <select id="selectCourseStats" resultType="com.training.common.vo.CourseStatVO">
+        SELECT
+            c.id AS courseId,
+            c.title AS title,
+            t.real_name AS teacherName,
+            IFNULL(ec.cnt, 0) AS enrollCount,
+            IFNULL(sc.cnt, 0) AS studyCount,
+            IFNULL(sc.avgProgress, 0) AS avgProgress,
+            IFNULL(sc.completionRate, 0) AS completionRate
+        FROM course c
+        LEFT JOIN teacher t ON t.id = c.teacher_id AND t.deleted = 0
+        LEFT JOIN (
+            SELECT course_id, COUNT(*) AS cnt
+            FROM course_enroll WHERE deleted = 0
+            GROUP BY course_id
+        ) ec ON ec.course_id = c.id
+        LEFT JOIN (
+            SELECT course_id,
+                   COUNT(DISTINCT student_id) AS cnt,
+                   AVG(progress) AS avgProgress,
+                   ROUND(AVG(CASE WHEN progress >= 100 THEN 100 ELSE 0 END), 2) AS completionRate
+            FROM study_record WHERE deleted = 0
+            GROUP BY course_id
+        ) sc ON sc.course_id = c.id
+        WHERE c.deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND c.title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        ORDER BY enrollCount DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countCourseStats" resultType="long">
+        SELECT COUNT(*) FROM course c WHERE c.deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND c.title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+    </select>
+
+    <!-- ============ 机构维度统计 ============ -->
+    <select id="selectOrgStats" resultType="com.training.common.vo.OrgStatVO">
+        SELECT
+            u.org_name AS orgName,
+            COUNT(DISTINCT u.id) AS studentCount,
+            ROUND(IFNULL(SUM(sr.study_duration), 0) / 3600.0, 2) AS totalStudyHours,
+            ROUND(
+                CASE WHEN COUNT(DISTINCT u.id) = 0 THEN 0
+                     ELSE IFNULL(SUM(sr.study_duration), 0) / 3600.0 / COUNT(DISTINCT u.id)
+                END, 2
+            ) AS avgStudyHours,
+            ROUND(
+                CASE WHEN COUNT(er.id) = 0 THEN 0
+                     ELSE SUM(CASE WHEN er.score &gt;= e.pass_score THEN 1 ELSE 0 END) * 100.0 / COUNT(er.id)
+                END, 2
+            ) AS examPassRate
+        FROM sys_user u
+        LEFT JOIN study_record sr ON sr.student_id = u.id AND sr.deleted = 0
+        LEFT JOIN exam_record er ON er.student_id = u.id AND er.deleted = 0 AND er.status = 2
+        LEFT JOIN exam e ON e.id = er.exam_id
+        WHERE u.role_id = 3 AND u.deleted = 0
+          AND u.org_name IS NOT NULL
+        GROUP BY u.org_name
+        ORDER BY totalStudyHours DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countOrgStats" resultType="long">
+        SELECT COUNT(DISTINCT org_name)
+        FROM sys_user
+        WHERE role_id = 3 AND deleted = 0 AND org_name IS NOT NULL
+    </select>
+
+    <!-- ============ 时间趋势 ============ -->
+    <!--
+        granularity 取值：
+        - day:   DATE_FORMAT(update_time, '%Y-%m-%d')
+        - week:  CONCAT(YEAR(update_time), '-W', LPAD(WEEK(update_time, 0), 2, '0'))
+        - month: DATE_FORMAT(update_time, '%Y-%m')
+        fromDate 用于过滤起始日期（如近 30 天、近 12 周）
+    -->
+    <select id="selectTrend" resultType="com.training.common.vo.TrendVO$TrendPointVO">
+        SELECT
+            <choose>
+                <when test="granularity == 'day'">
+                    DATE_FORMAT(update_time, '%Y-%m-%d') AS label
+                </when>
+                <when test="granularity == 'week'">
+                    CONCAT(YEAR(update_time), '-W', LPAD(WEEK(update_time, 0), 2, '0')) AS label
+                </when>
+                <otherwise>
+                    DATE_FORMAT(update_time, '%Y-%m') AS label
+                </otherwise>
+            </choose>,
+            ROUND(IFNULL(SUM(study_duration), 0) / 3600.0, 2) AS studyHours,
+            COUNT(DISTINCT student_id) AS activeStudents,
+            0 AS newEnrollments
+        FROM study_record
+        WHERE deleted = 0
+        <if test="fromDate != null and fromDate != ''">
+            AND update_time &gt;= #{fromDate}
+        </if>
+        GROUP BY label
+        ORDER BY label
+    </select>
+
+    <!-- ============ 学员个人统计（小程序） ============ -->
+    <select id="selectMyStat" resultType="com.training.common.vo.MyStatVO">
+        SELECT
+            u.id AS studentId,
+            u.real_name AS realName,
+            u.org_name AS orgName,
+            ROUND(IFNULL(sd.totalSeconds, 0) / 3600.0, 2) AS totalStudyHours,
+            IFNULL(ec.cnt, 0) AS enrollCount,
+            IFNULL(sd.completed, 0) AS completedChapters,
+            IFNULL(ea.examCount, 0) AS examCount,
+            IFNULL(ea.avgScore, 0) AS examAvgScore,
+            IFNULL(cc.cnt, 0) AS consultCount
+        FROM sys_user u
+        LEFT JOIN (
+            SELECT student_id, SUM(study_duration) AS totalSeconds,
+                   SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS completed
+            FROM study_record WHERE deleted = 0 GROUP BY student_id
+        ) sd ON sd.student_id = u.id
+        LEFT JOIN (
+            SELECT student_id, COUNT(*) AS cnt FROM course_enroll WHERE deleted = 0 GROUP BY student_id
+        ) ec ON ec.student_id = u.id
+        LEFT JOIN (
+            SELECT student_id, COUNT(*) AS examCount, AVG(score) AS avgScore
+            FROM exam_record WHERE deleted = 0 AND status = 2 GROUP BY student_id
+        ) ea ON ea.student_id = u.id
+        LEFT JOIN (
+            SELECT student_id, COUNT(*) AS cnt FROM consult_record WHERE deleted = 0 GROUP BY student_id
+        ) cc ON cc.student_id = u.id
+        WHERE u.id = #{studentId} AND u.deleted = 0
+    </select>
+
+    <select id="selectRecentDays" resultType="com.training.common.vo.MyStatVO$DailyHourVO">
+        SELECT
+            DATE_FORMAT(update_time, '%Y-%m-%d') AS `date`,
+            ROUND(IFNULL(SUM(study_duration), 0) / 3600.0, 2) AS hours,
+            ROUND(IFNULL(SUM(study_duration), 0) / 60.0, 0) AS minutes
+        FROM study_record
+        WHERE deleted = 0
+          AND student_id = #{studentId}
+          AND update_time &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+        GROUP BY `date`
+        ORDER BY `date`
+    </select>
+
+</mapper>

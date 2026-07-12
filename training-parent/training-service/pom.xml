@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.training</groupId>
+        <artifactId>training-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>training-service</artifactId>
+    <name>training-service</name>
+    <description>业务逻辑层：Service 接口 + 实现</description>
+
+    <dependencies>
+        <!-- 依赖 dao -->
+        <dependency>
+            <groupId>com.training</groupId>
+            <artifactId>training-dao</artifactId>
+        </dependency>
+
+        <!-- Web (RestTemplate for LongCat AI API) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Security Crypto（Crypt 密码加密）-->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+    </dependencies>
+</project>

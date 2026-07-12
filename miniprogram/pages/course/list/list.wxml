@@ -1,0 +1,53 @@
+<!-- pages/course/list/list.wxml -->
+<view class="course-list-page">
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <view class="search-icon">🔍</view>
+      <input class="search-input"
+             placeholder="搜索课程名称"
+             confirm-type="search"
+             bindsearch="onSearch"
+             value="{{keyword}}" />
+    </view>
+  </view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-bar">
+    <view class="filter-item {{item.value === courseType ? 'active' : ''}}"
+          wx:for="{{filters}}"
+          wx:key="value"
+          data-type="{{item.value}}"
+          bindtap="onFilter">
+      {{item.label}}
+    </view>
+  </view>
+
+  <!-- 课程列表 -->
+  <view wx:if="{{list.length > 0}}">
+    <view class="course-card"
+          wx:for="{{list}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="goDetail">
+      <view class="course-cover">课程封面</view>
+      <view class="course-info">
+        <view>
+          <view class="course-title ellipsis">{{item.title}}</view>
+          <view class="course-tag {{item.courseType === 2 ? 'required' : ''}}">
+            {{item.courseType === 2 ? '必修课' : '公开课'}}
+          </view>
+          <view class="course-desc ellipsis-2">{{item.description}}</view>
+        </view>
+        <view class="course-action">
+          <view class="btn-enroll">查看详情</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="load-more" wx:if="{{!hasMore}}">— 没有更多了 —</view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{!loading}}" class="empty">暂无课程</view>
+</view>

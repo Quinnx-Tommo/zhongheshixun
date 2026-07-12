@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.training.mapper.ExamMapper">
+
+    <resultMap id="BaseResultMap" type="com.training.common.entity.Exam">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="exam_type" property="examType"/>
+        <result column="course_id" property="courseId"/>
+        <result column="plan_id" property="planId"/>
+        <result column="total_score" property="totalScore"/>
+        <result column="pass_score" property="passScore"/>
+        <result column="duration" property="duration"/>
+        <result column="max_retry" property="maxRetry"/>
+        <result column="question_count" property="questionCount"/>
+        <result column="question_ids" property="questionIds"/>
+        <result column="status" property="status"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectExamPage" resultMap="BaseResultMap">
+        SELECT * FROM exam
+        <where>
+            deleted = 0
+            <if test="title != null and title != ''">
+                AND title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="examType != null">
+                AND exam_type = #{examType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

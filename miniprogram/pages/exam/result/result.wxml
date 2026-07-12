@@ -1,0 +1,46 @@
+<!-- pages/exam/result/result.wxml -->
+<view class="result-page">
+  <!-- 结果卡片 -->
+  <view class="result-card">
+    <view class="result-icon {{passed ? 'pass' : 'fail'}}">
+      {{passed ? '✓' : '✗'}}
+    </view>
+    <view class="result-title">{{passed ? '考试通过' : '未通过'}}</view>
+
+    <!-- 分数 -->
+    <view class="score-area">
+      <view class="score-number">{{score}}</view>
+      <view class="score-unit">分</view>
+    </view>
+
+    <!-- 对错统计 -->
+    <view class="result-stats">
+      <view class="stat-item">
+        <view class="stat-value correct">{{correctCount}}</view>
+        <view class="stat-label">答对</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-value wrong">{{totalCount - correctCount}}</view>
+        <view class="stat-label">答错</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-value">{{totalCount}}</view>
+        <view class="stat-label">总题</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提示 -->
+  <view class="result-tip">
+    {{passed ? '恭喜你通过考试，继续加油！' : '再接再厉，复习后重新参加考试'}}
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="result-actions">
+    <view class="btn-primary" bindtap="goBack">返回考试列表</view>
+    <view class="btn-secondary" wx:if="{{!passed}}" bindtap="retryExam">重新考试</view>
+    <view class="btn-secondary" bindtap="goHome">返回首页</view>
+  </view>
+</view>

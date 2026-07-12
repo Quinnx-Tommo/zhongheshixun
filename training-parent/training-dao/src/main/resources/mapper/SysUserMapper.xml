@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.training.mapper.SysUserMapper">
+
+    <resultMap id="BaseResultMap" type="com.training.common.entity.SysUser">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="real_name" property="realName"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="role_id" property="roleId"/>
+        <result column="avatar" property="avatar"/>
+        <result column="org_name" property="orgName"/>
+        <result column="job_type" property="jobType"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <!-- 关联 sys_role：role/roleName 为非持久化字段，需在 SELECT 列表中显式提供 -->
+        <result column="role_code" property="role"/>
+        <result column="role_name" property="roleName"/>
+    </resultMap>
+
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        SELECT
+            u.id, u.username, u.password, u.real_name, u.phone, u.email,
+            u.role_id, u.avatar, u.org_name, u.job_type, u.status,
+            u.create_time, u.update_time,
+            r.role_code, r.role_name
+        FROM sys_user u
+        LEFT JOIN sys_role r ON r.id = u.role_id AND r.deleted = 0
+        WHERE u.username = #{username} AND u.deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectUserById" resultMap="BaseResultMap">
+        SELECT
+            u.id, u.username, u.password, u.real_name, u.phone, u.email,
+            u.role_id, u.avatar, u.org_name, u.job_type, u.status,
+            u.create_time, u.update_time,
+            r.role_code, r.role_name
+        FROM sys_user u
+        LEFT JOIN sys_role r ON r.id = u.role_id AND r.deleted = 0
+        WHERE u.id = #{id} AND u.deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectUserPage" resultMap="BaseResultMap">
+        SELECT
+            u.id, u.username, u.password, u.real_name, u.phone, u.email,
+            u.role_id, u.avatar, u.org_name, u.job_type, u.status,
+            u.create_time, u.update_time,
+            r.role_code, r.role_name
+        FROM sys_user u
+        LEFT JOIN sys_role r ON r.id = u.role_id AND r.deleted = 0
+        <where>
+            u.deleted = 0
+            <if test="role != null and role != ''">
+                <!-- 兼容 role 字符串筛选：admin/teacher/student -> role_code -->
+                AND r.role_code = UPPER(#{role})
+            </if>
+            <if test="status != null">
+                AND u.status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (u.username LIKE CONCAT('%', #{keyword}, '%')
+                     OR u.real_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY u.id DESC
+    </select>
+
+</mapper>
