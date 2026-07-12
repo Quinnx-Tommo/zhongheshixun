@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 -- 四川省基层卫生人员网络培训平台 - 数据库初始化脚本
 -- 版本: v1.1.0 (2026-07-09)
 --
@@ -367,7 +367,7 @@ INSERT INTO sys_permission (id,perm_code,perm_name,description,module,create_tim
 (19,'teacher:write','讲师编辑','新增/修改/删除讲师','teacher','2026-07-09 00:00:00',0),
 (20,'resource:read','资源查看','资源列表/详情可见','resource','2026-07-09 00:00:00',0);
 
--- 角色-权限绑定:ADMIN 全 20,TEACHER 课程+章节+知识+题目+考试+咨询+计划(13),STUDENT 仅 course/read + exam/read
+-- 角色-权限绑定:ADMIN 全 20,TEACHER 课程+章节+知识+题目+考试+咨询+统计+计划(15),STUDENT 仅 course/read + exam/read
 INSERT INTO sys_role_permission (role_id,permission_id,create_time) VALUES
 (1,1,'2026-07-09 00:00:00'),
 (1,2,'2026-07-09 00:00:00'),
@@ -401,6 +401,9 @@ INSERT INTO sys_role_permission (role_id,permission_id,create_time) VALUES
 (2,10,'2026-07-09 00:00:00'),
 (2,16,'2026-07-09 00:00:00'),
 (2,17,'2026-07-09 00:00:00'),
+(2,13,'2026-07-09 00:00:00'),   -- stats:read
+(2,11,'2026-07-09 00:00:00'),   -- consult:read
+(2,12,'2026-07-09 00:00:00'),   -- consult:write
 (3,1,'2026-07-09 00:00:00'),
 (3,9,'2026-07-09 00:00:00');
 
