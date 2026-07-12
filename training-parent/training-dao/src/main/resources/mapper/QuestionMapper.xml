@@ -13,6 +13,7 @@
         <result column="answer" property="answer"/>
         <result column="score" property="score"/>
         <result column="difficulty" property="difficulty"/>
+        <result column="analysis" property="analysis"/>
         <result column="create_time" property="createTime"/>
     </resultMap>
 
