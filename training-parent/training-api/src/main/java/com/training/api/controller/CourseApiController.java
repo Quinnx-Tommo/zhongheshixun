@@ -123,7 +123,6 @@ public class CourseApiController {
             vo.setCourse(course);
             vo.setChapters(chapters);
             vo.setTeacherName(teacherName);
-            vo.setDifficulty(course.getDifficulty());
             vo.setTotalHours(course.getTotalHours());
             // M13：把 courseType 平铺为 type，供前端字典映射（修复右侧栏"课程类型: 其他"）
             vo.setType(course.getCourseType());

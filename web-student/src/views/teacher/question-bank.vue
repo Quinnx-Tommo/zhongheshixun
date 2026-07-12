@@ -90,11 +90,10 @@
       <el-alert
         type="info"
         :closable="false"
-        title="题库管理完整功能（题目增删改查、批量导入、组卷配置）在管理后台（5176）提供。"
+        title="题库管理完整功能（题目增删改查、批量导入、组卷配置）在管理后台（端口 5176，admin 账号登录）提供。"
       >
         <template #default>
           <div style="margin-top: 8px">
-            <el-button type="primary" size="small" @click="goAdmin">前往管理后台（5176）</el-button>
             <el-button size="small" @click="goHome">返回学员首页</el-button>
           </div>
         </template>
@@ -157,9 +156,6 @@ function goExamCenter() {
   router.push('/exams')
 }
 
-function goAdmin() {
-  window.open('http://localhost:5176/#/question', '_blank')
-}
 
 function goHome() {
   router.push('/home')

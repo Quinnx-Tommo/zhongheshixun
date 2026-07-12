@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="question-page">
     <!-- 筛选区 -->
     <el-card shadow="never" class="filter-card">
@@ -21,7 +21,7 @@
         </el-form-item>
         <el-form-item label="题型">
           <el-select
-            v-model="queryForm.type"
+            v-model="queryForm.questionType"
             placeholder="全部"
             clearable
             style="width: 140px"
@@ -133,8 +133,8 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="题型" prop="type">
-          <el-radio-group v-model="formData.type">
+        <el-form-item label="题型" prop="questionType">
+          <el-radio-group v-model="formData.questionType">
             <el-radio :value="1">单选题</el-radio>
             <el-radio :value="2">多选题</el-radio>
             <el-radio :value="3">判断题</el-radio>
@@ -161,7 +161,7 @@
         </el-form-item>
 
         <!-- 单选/多选：选项列表 -->
-        <template v-if="formData.type === 1 || formData.type === 2">
+        <template v-if="formData.questionType === 1 || formData.questionType === 2">
           <el-form-item label="选项" required>
             <div v-for="(opt, idx) in optionList" :key="idx" class="option-row">
               <el-tag class="option-key">{{ opt.key }}</el-tag>
@@ -181,7 +181,7 @@
           </el-form-item>
           <el-form-item label="标准答案" prop="answer">
             <el-select
-              v-if="formData.type === 1"
+              v-if="formData.questionType === 1"
               v-model="formData.answer"
               placeholder="请选择正确选项"
               style="width: 200px"
@@ -201,7 +201,7 @@
         </template>
 
         <!-- 判断：正确/错误 -->
-        <el-form-item v-if="formData.type === 3" label="标准答案" prop="answer">
+        <el-form-item v-if="formData.questionType === 3" label="标准答案" prop="answer">
           <el-radio-group v-model="formData.answer">
             <el-radio value="正确">正确</el-radio>
             <el-radio value="错误">错误</el-radio>
@@ -209,7 +209,7 @@
         </el-form-item>
 
         <!-- 填空：多个答案 | 分隔 -->
-        <el-form-item v-if="formData.type === 4" label="标准答案" prop="answer">
+        <el-form-item v-if="formData.questionType === 4" label="标准答案" prop="answer">
           <el-input
             v-model="formData.answer"
             type="textarea"
@@ -219,7 +219,7 @@
         </el-form-item>
 
         <!-- 问答：参考答案 -->
-        <el-form-item v-if="formData.type === 5" label="参考答案" prop="answer">
+        <el-form-item v-if="formData.questionType === 5" label="参考答案" prop="answer">
           <el-input
             v-model="formData.answer"
             type="textarea"
@@ -270,7 +270,7 @@ const queryForm = reactive({
   pageSize: 10,
   courseId: undefined as number | undefined,
   title: '',
-  type: undefined as number | undefined,
+  questionType: undefined as number | undefined,
   difficulty: undefined as number | undefined
 })
 
@@ -281,7 +281,7 @@ const formData = reactive({
   id: undefined as number | undefined,
   courseId: undefined as number | undefined,
   title: '',
-  type: 1,
+  questionType: 1,
   difficulty: 1,
   answer: '',
   options: '',
@@ -340,7 +340,7 @@ async function fetchList() {
     }
     if (queryForm.courseId) params.courseId = queryForm.courseId
     if (queryForm.title) params.title = queryForm.title
-    if (queryForm.type !== undefined) params.questionType = queryForm.type
+    if (queryForm.questionType !== undefined) params.questionType = queryForm.questionType
     if (queryForm.difficulty !== undefined) params.difficulty = queryForm.difficulty
 
     const res: any = await getQuestionPage(params)
@@ -366,7 +366,7 @@ function handleQuery() {
 function handleReset() {
   queryForm.title = ''
   queryForm.courseId = undefined
-  queryForm.type = undefined
+  queryForm.questionType = undefined
   queryForm.difficulty = undefined
   queryForm.pageNum = 1
   fetchList()
@@ -376,7 +376,7 @@ function resetForm() {
   formData.id = undefined
   formData.courseId = undefined
   formData.title = ''
-  formData.type = 1
+  formData.questionType = 1
   formData.difficulty = 1
   formData.answer = ''
   formData.options = ''
@@ -404,12 +404,12 @@ async function handleEdit(row: any) {
     formData.id = data.id
     formData.courseId = data.courseId
     formData.title = data.title
-    formData.type = data.type
+    formData.questionType = data.questionType
     formData.difficulty = data.difficulty
     formData.answer = data.answer || ''
     formData.analysis = data.analysis || ''
     // 回填选项
-    if (data.options && (data.type === 1 || data.type === 2)) {
+    if (data.options && (data.questionType === 1 || data.questionType === 2)) {
       try {
         const opts = JSON.parse(data.options)
         if (Array.isArray(opts) && opts.length > 0) {
@@ -419,7 +419,7 @@ async function handleEdit(row: any) {
         // 解析失败保持默认
       }
     }
-    if (data.type === 2 && data.answer) {
+    if (data.questionType === 2 && data.answer) {
       multiAnswer.value = data.answer.split(',').map((s: string) => s.trim())
     }
     dialogVisible.value = true
@@ -444,7 +444,7 @@ function removeOption(idx: number) {
 }
 
 // 监听题型变化，重置选项和答案
-watch(() => formData.type, (newType) => {
+watch(() => formData.questionType, (newType) => {
   if (newType === 1 || newType === 2) {
     if (optionList.value.length === 0) {
       optionList.value = [
@@ -472,7 +472,7 @@ async function handleSubmit() {
     if (!valid) return
 
     // 选项校验
-    if (formData.type === 1 || formData.type === 2) {
+    if (formData.questionType === 1 || formData.questionType === 2) {
       const hasEmpty = optionList.value.some((o) => !o.value.trim())
       if (hasEmpty) {
         ElMessage.warning('请填写所有选项内容')
@@ -488,7 +488,7 @@ async function handleSubmit() {
     submitting.value = true
     try {
       const submitData = { ...formData }
-      if (formData.type === 2) {
+      if (formData.questionType === 2) {
         submitData.answer = multiAnswer.value.join(',')
         submitData.options = JSON.stringify(optionList.value)
       }

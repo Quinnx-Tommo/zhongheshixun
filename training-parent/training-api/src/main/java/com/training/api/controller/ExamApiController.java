@@ -1,6 +1,7 @@
 package com.training.api.controller;
 
 import com.training.common.dto.ExamSubmitDTO;
+import com.training.common.entity.Exam;
 import com.training.common.entity.ExamAnswer;
 import com.training.common.entity.ExamRecord;
 import com.training.common.result.PageResult;
@@ -28,10 +29,10 @@ import java.util.List;
 public class ExamApiController {
 
     @Resource
-    private ExamService examService;
+    private ExamBizService examBizService;
 
     @Resource
-    private ExamBizService examBizService;
+    private ExamService examService;
 
     @Resource
     private ExamRecordMapper examRecordMapper;
@@ -104,10 +105,25 @@ public class ExamApiController {
     /**
      * 查看成绩（按 examId 查最新一条已批阅记录 + 聚合答题详情）
      * 用于"查看成绩"按钮跳转（无 query 参数场景）
+     *
+     * <p>M12 修复：
+     * <ul>
+     *   <li>原实现当 record=null 时返回 404，前端 result.vue 显示 alert 提示"加载失败"，体感"空白"</li>
+     *   <li>改为：当 record=null 时也返回空 vo（score=0/correctCount=0），前端按"未参加考试"展示</li>
+     *   <li>totalScore 从 exam.totalScore 取（修复原版误用 record.getScore() 当 totalScore 的 bug）</li>
+     *   <li>passed 从 exam.passScore 判定</li>
+     *   <li>correctRate 计算补全</li>
+     * </ul>
      */
     @GetMapping("/result")
     public Result<ExamResultVO> result(@RequestParam Long examId,
                                        @RequestAttribute("userId") Long userId) {
+        // 1) 取考试配置（用于 totalScore/passScore）
+        Exam exam = examService.getById(examId);
+        Integer totalScore = exam != null ? exam.getTotalScore() : 0;
+        Integer passScore = exam != null ? exam.getPassScore() : 60;
+
+        // 2) 取最新一条考试记录
         ExamRecord record = examRecordMapper.selectOne(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<ExamRecord>()
                         .eq(ExamRecord::getStudentId, userId)
@@ -115,25 +131,51 @@ public class ExamApiController {
                         .orderByDesc(ExamRecord::getCreateTime)
                         .last("LIMIT 1")
         );
+
+        ExamResultVO vo = new ExamResultVO();
+        vo.setTotalScore(totalScore != null ? totalScore : 0);
+        vo.setCorrectCount(0);
+        vo.setWrongCount(0);
+        vo.setUnansweredCount(0);
+        vo.setCorrectRate(0.0);
+        vo.setScore(0);
+        vo.setPassed(false);
+
+        // 3) 无记录：返回空 vo（前端展示"未参加考试"）
         if (record == null) {
-            return Result.error(404, "考试记录不存在");
+            log.info("M12 exam/result userId={} examId={} 无考试记录，返回空 vo", userId, examId);
+            return Result.success(vo);
         }
-        // 聚合答题详情
+
+        // 4) 聚合答题详情
         List<ExamAnswer> answers = examAnswerMapper.selectList(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<ExamAnswer>()
                         .eq(ExamAnswer::getRecordId, record.getId())
         );
-        long correctCount = answers.stream().filter(a -> a.getIsCorrect() != null && a.getIsCorrect() == 1).count();
-        long wrongCount = answers.stream().filter(a -> a.getIsCorrect() != null && a.getIsCorrect() == 0).count();
-        long unansweredCount = answers.stream().filter(a -> a.getStudentAnswer() == null || a.getStudentAnswer().trim().isEmpty()).count();
-
-        ExamResultVO vo = new ExamResultVO();
-        vo.setScore(record.getScore());
-        vo.setTotalScore(record.getScore() != null ? record.getScore().intValue() : 0); // 简化：总分从 record 取
-        vo.setPassed(record.getScore() != null && record.getScore() >= 60); // 简化判定
+        long correctCount = 0, wrongCount = 0, unansweredCount = 0;
+        if (answers != null) {
+            for (ExamAnswer a : answers) {
+                if (a.getIsCorrect() != null && a.getIsCorrect() == 1) {
+                    correctCount++;
+                } else if (a.getIsCorrect() != null && a.getIsCorrect() == 0) {
+                    wrongCount++;
+                }
+                if (a.getStudentAnswer() == null || a.getStudentAnswer().trim().isEmpty()) {
+                    unansweredCount++;
+                }
+            }
+        }
+        Integer score = record.getScore();
+        vo.setScore(score != null ? score : 0);
+        vo.setTotalScore(totalScore != null ? totalScore : (score != null ? score : 0));
         vo.setCorrectCount((int) correctCount);
         vo.setWrongCount((int) wrongCount);
         vo.setUnansweredCount((int) unansweredCount);
+        // 通过判定：score >= passScore
+        vo.setPassed(score != null && passScore != null && score >= passScore);
+        // 正确率
+        int total = (int) (correctCount + wrongCount + unansweredCount);
+        vo.setCorrectRate(total > 0 ? (double) correctCount / total : 0.0);
         return Result.success(vo);
     }
 }

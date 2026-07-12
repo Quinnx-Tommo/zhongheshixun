@@ -58,7 +58,12 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        // 后台路径要求 ADMIN 角色
+                        // M12 修复：讲师 P2/P3 跳 5176 后可以查看教学相关路径（只读 + 自身范围）
+                        // 允许 TEACHER 角色访问教学模块
+                        .antMatchers("/admin/course", "/admin/course/page", "/admin/course/{id}").hasAnyRole("ADMIN", "TEACHER")
+                        .antMatchers("/admin/question", "/admin/question/page", "/admin/question/{id}").hasAnyRole("ADMIN", "TEACHER")
+                        .antMatchers("/admin/consult", "/admin/consult/page", "/admin/consult/sla-alert").hasAnyRole("ADMIN", "TEACHER")
+                        // 其他后台路径要求 ADMIN 角色
                         .antMatchers("/admin/**").hasRole("ADMIN")
                         // 其他路径需认证
                         .anyRequest().authenticated()

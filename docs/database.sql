@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 -- 四川省基层卫生人员网络培训平台 - 数据库初始化脚本
 -- 版本: v1.1.0 (2026-07-09)
 --
@@ -116,7 +116,7 @@ CREATE TABLE sys_role_permission (
 -- 培训讲师表
 CREATE TABLE teacher (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT NOT NULL COMMENT '关联用户ID',
+  user_id BIGINT DEFAULT NULL COMMENT '关联用户ID(可空,允许讲师独立维护档案)',
   real_name VARCHAR(50) NOT NULL COMMENT '讲师姓名',
   title VARCHAR(50) COMMENT '职称',
   education VARCHAR(50) COMMENT '学历',
@@ -196,7 +196,7 @@ CREATE TABLE question (
   course_id BIGINT DEFAULT NULL COMMENT '关联课程',
   knowledge_point_id BIGINT DEFAULT NULL COMMENT '关联知识点',
   title VARCHAR(500) NOT NULL COMMENT '题目',
-  question_type TINYINT NOT NULL COMMENT '类型:1 单选 2 多选 3 判断 4 填空 5 问答',
+  question_type TINYINT DEFAULT 1 COMMENT '类型:1 单选 2 多选 3 判断 4 填空 5 问答',
   options TEXT COMMENT '选项(JSON)',
   answer VARCHAR(500) NOT NULL COMMENT '正确答案',
   score INT DEFAULT 1 COMMENT '分值',

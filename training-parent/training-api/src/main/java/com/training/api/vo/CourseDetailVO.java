@@ -10,8 +10,8 @@ import java.util.List;
  * 课程详情响应 VO（含章节列表）
  *
  * <p>顶层平铺了 {@code course} 实体中常用字段（{@link #teacherName}、
- * {@link #difficulty}、{@link #totalHours}）以及章节列表 {@link #chapters}，
- * 前端可直接通过 {@code detail.teacherName / detail.difficulty / detail.totalHours}
+ * {@link #totalHours}）以及章节列表 {@link #chapters}，
+ * 前端可直接通过 {@code detail.teacherName / detail.totalHours}
  * 访问，也可继续通过 {@code detail.course.xxx} 兼容旧版本。</p>
  */
 @Data
@@ -25,9 +25,6 @@ public class CourseDetailVO {
 
     /** 讲师姓名（联表 teacher.realName）— 平铺字段 */
     private String teacherName;
-
-    /** 难度等级 — 平铺字段 */
-    private String difficulty;
 
     /** 总学时 — 平铺字段 */
     private Integer totalHours;

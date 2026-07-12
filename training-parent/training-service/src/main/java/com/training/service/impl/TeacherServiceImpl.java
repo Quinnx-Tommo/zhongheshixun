@@ -23,6 +23,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     public boolean create(Teacher teacher) {
+        // 防御：user_id 可空（独立维护讲师档案场景）
         return save(teacher);
     }
 

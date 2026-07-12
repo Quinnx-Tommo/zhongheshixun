@@ -11,7 +11,6 @@
         <result column="teacher_id" property="teacherId"/>
         <result column="course_type" property="courseType"/>
         <result column="total_hours" property="totalHours"/>
-        <result column="difficulty" property="difficulty"/>
         <result column="status" property="status"/>
         <result column="offline_flag" property="offlineFlag"/>
         <result column="create_time" property="createTime"/>

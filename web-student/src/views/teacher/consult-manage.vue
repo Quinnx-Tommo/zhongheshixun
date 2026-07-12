@@ -86,11 +86,10 @@
       <el-alert
         type="info"
         :closable="false"
-        title="咨询接单 / 回复 / 闭环的完整能力在管理后台（5176）提供，这里是教师侧的快速概览。"
+        title="咨询接单 / 回复 / 闭环的完整能力在管理后台（端口 5176，admin 账号登录）提供，这里是教师侧的快速概览。"
       >
         <template #default>
           <div style="margin-top: 8px">
-            <el-button type="primary" size="small" @click="goAdmin">前往管理后台（5176）</el-button>
             <el-button size="small" @click="goConsult">查看我的咨询</el-button>
             <el-button size="small" @click="goHome">返回学员首页</el-button>
           </div>
@@ -145,9 +144,6 @@ function goConsult() {
   router.push('/consult')
 }
 
-function goAdmin() {
-  window.open('http://localhost:5176/#/consult', '_blank')
-}
 
 function goHome() {
   router.push('/home')

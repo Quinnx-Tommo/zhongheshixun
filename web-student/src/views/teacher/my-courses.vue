@@ -102,11 +102,10 @@
       <el-alert
         type="info"
         :closable="false"
-        title="教学事务的完整功能（课程创建、章节编辑、查看学员）在管理后台（5176）提供。"
+        title="教学事务的完整功能（课程创建、章节编辑、查看学员）在管理后台（端口 5176，admin 账号登录）提供。"
       >
         <template #default>
           <div style="margin-top: 8px">
-            <el-button type="primary" size="small" @click="goAdmin">前往管理后台（5176）</el-button>
             <el-button size="small" @click="goHome">返回学员首页</el-button>
           </div>
         </template>
@@ -172,9 +171,6 @@ function goCourseCenter() {
   router.push('/courses')
 }
 
-function goAdmin() {
-  window.open('http://localhost:5176/#/course', '_blank')
-}
 
 function goHome() {
   router.push('/home')

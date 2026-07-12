@@ -29,6 +29,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         if (question.getDifficulty() == null) {
             question.setDifficulty(2);
         }
+        // 防御：question_type 前端未传时默认 1 (单选)
+        if (question.getQuestionType() == null) {
+            question.setQuestionType(1);
+        }
         return save(question);
     }
 

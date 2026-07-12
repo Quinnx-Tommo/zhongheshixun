@@ -510,6 +510,34 @@ async function handleOffline(row: any) {
   }
 }
 
+/**
+ * M12 修复：下架后重新上架（status=2 → 1）
+ *
+ * 说明：复用 publishExam 接口，后端 ExamServiceImpl.publish 已放开限制
+ * （任意非 1 状态都可切到 1），无需新接口。
+ */
+async function handleRepublish(row: any) {
+  await ElMessageBox.confirm(
+    `确定重新上架考试《${row.title}》？上架后学员端将再次可见。`,
+    '重新上架确认',
+    {
+      confirmButtonText: '确定上架',
+      cancelButtonText: '取消',
+      type: 'info',
+    }
+  )
+  row.__republishing = true
+  try {
+    await publishExam(row.id)
+    ElMessage.success('重新上架成功')
+    fetchList()
+  } catch (e) {
+    // 错误已在 request 拦截器处理
+  } finally {
+    row.__republishing = false
+  }
+}
+
 onMounted(() => {
   fetchCourseOptions()
   fetchKnowledgeOptions()

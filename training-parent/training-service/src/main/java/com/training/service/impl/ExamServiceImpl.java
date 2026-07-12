@@ -99,6 +99,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
         if (exam == null) {
             throw new BusinessException(ResultCode.EXAM_NOT_FOUND.getCode(), "考试不存在");
         }
+        // M12 修复：允许 status=0(草稿) / 2(已下架) → 1(已发布) 任意状态切换
         if (exam.getStatus() != null && exam.getStatus() == 1) {
             return true; // 已是已发布，幂等返回
         }
@@ -115,8 +116,11 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             throw new BusinessException(ResultCode.PARAM_ERROR.getCode(),
                     "题库为空，无法发布：请先组卷或添加题目");
         }
-        exam.setStatus(1); // 0 草稿 -> 1 已发布
-        return updateById(exam);
+        exam.setStatus(1); // 0 草稿 / 2 已下架 -> 1 已发布
+        boolean ok = updateById(exam);
+        log.info("M12 考试重新发布 examId={} 原 status={} -> 1", examId,
+                exam.getStatus() != null ? exam.getStatus() : "null");
+        return ok;
     }
 
     @Override

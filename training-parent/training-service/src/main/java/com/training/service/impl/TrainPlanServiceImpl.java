@@ -120,19 +120,41 @@ public class TrainPlanServiceImpl extends ServiceImpl<TrainPlanMapper, TrainPlan
         Long countObj = planCourseMapper.selectCount(countWrapper);
         int count = countObj == null ? 0 : countObj.intValue();
 
+        // M12 修复：先查出已存在的 (planId, courseId) 集合，去重后避免重复插入
+        // （plan_course 表无 unique key,MyBatis-Plus 不会去重）
+        List<TrainPlanCourse> existing = planCourseMapper.selectList(countWrapper);
+        java.util.Set<Long> existingCourseIds = new java.util.HashSet<>();
+        if (existing != null) {
+            for (TrainPlanCourse pc : existing) {
+                if (pc.getCourseId() != null) {
+                    existingCourseIds.add(pc.getCourseId());
+                }
+            }
+        }
+
         List<TrainPlanCourse> records = new ArrayList<>();
         int order = count + 1;
         for (Long courseId : dto.getCourseIds()) {
+            // 跳过已关联的课程
+            if (existingCourseIds.contains(courseId)) {
+                log.info("M12 培训计划 {} 已关联课程 {}，跳过", dto.getPlanId(), courseId);
+                continue;
+            }
             TrainPlanCourse record = new TrainPlanCourse();
             record.setPlanId(dto.getPlanId());
             record.setCourseId(courseId);
             record.setSortOrder(order++);
             record.setIsRequired(1);
+            // 显式 set deleted=0 + createTime，绕过 MyBatis-Plus null 跳过策略，避免依赖 DB DEFAULT
+            record.setDeleted(0);
+            record.setCreateTime(java.time.LocalDateTime.now());
             records.add(record);
         }
         for (TrainPlanCourse record : records) {
             planCourseMapper.insert(record);
         }
+        log.info("M12 培训计划 {} 关联课程: 请求 {} 条, 实际新增 {} 条",
+                dto.getPlanId(), dto.getCourseIds().size(), records.size());
         return true;
     }
 

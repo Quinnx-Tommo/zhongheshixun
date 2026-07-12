@@ -37,9 +37,6 @@ public class Course {
     /** 总学时 */
     private Integer totalHours;
 
-    /** 难度等级：简单/中等/困难 */
-    private String difficulty;
-
     /** 状态：0草稿 1已发布 2已下架 */
     private Integer status;
 
