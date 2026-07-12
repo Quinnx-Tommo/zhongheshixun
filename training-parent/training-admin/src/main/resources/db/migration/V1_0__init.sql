@@ -1,0 +1,28 @@
+-- =============================================================
+-- V1_0__init.sql
+-- 17 张业务表初始化（Flyway migration 形式）
+-- 日期: 2026-07-12
+-- 说明: 历史数据库使用 docs/database.sql 一体化初始化（17+4 张表 + 示例数据），
+--       此文件仅作为 Flyway 自动管理 schema 演进时的 V1_0 baseline。
+--       若 flyway_schema_history 不存在且希望 Flyway 接管，
+--       可在 application.yml 配置 baseline-on-migrate: true。
+-- =============================================================
+
+-- 此文件为占位说明文件，DDL 权威定义在 docs/database.sql 中。
+-- 启用 Flyway 方式:
+--   1) 第一次启动时 Spring Boot 会自动创建 flyway_schema_history 表
+--   2) baseline-on-migrate=true 会把当前 schema 标记为 V1_0 baseline
+--   3) 后续只会执行 V2_0 / V2_1 等新版本
+--
+-- 若你的部署方式是手动跑 docs/database.sql (一体化)：
+--   - 不需要此文件
+--   - 也不需要 Flyway
+--   - 增量更新请跑 docs/db-upgrade-from-v1.sql (V2_0 + V2_1)
+--
+-- 字段说明:
+--   本版本包含的 17 张业务表来自 docs/database.sql:
+--     sys_user / course / course_chapter / chapter_resource
+--     teacher / exam / exam_record / exam_answer
+--     question / question_knowledge / train_plan / train_plan_course
+--     study_progress / learning_note / consult / consult_reply
+--     knowledge_point

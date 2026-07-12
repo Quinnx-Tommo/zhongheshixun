@@ -1,6 +1,6 @@
 -- ============================================================
 -- 四川省基层卫生人员网络培训平台 - 数据库初始化脚本
--- 版本: v1.1.0 (2026-07-09)
+-- 版本: v1.2.0 (2026-07-12)
 --
 -- 使用方法:
 --   mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS training DEFAULT CHARSET utf8mb4;"
@@ -11,6 +11,15 @@
 --   - 演示账号(admin/teacher01/student01-06)密码统一: 123456
 --   - 示例课程 4 门 / 知识点 5 条 / 试题 10 道 / 考试 3 场
 --   - 备份了 1 场 student01 已批阅的考试记录(exam_record=1,exam_answer=10 行)
+--
+-- v1.2.0 (2026-07-12) 变更:
+--   - teacher.user_id 允许 NULL（独立维护讲师档案场景,前端表单不强制传 user_id）
+--   - question.question_type 允许 NULL + DEFAULT 1 (单选),避免新增试题时 500
+--   - 已与 V2_1__fix_schema_align_entity.sql 同步,新部署时一次跑即可
+--
+-- 升级已有数据库:
+--   - 已有数据: 跑 docs/db-upgrade-from-v1.sql (V2_0 + V2_1 增量)
+--   - 全新部署: 直接跑本文件 (一体化 17+4 张表 + V2_1 修复)
 -- ============================================================
 
 SET NAMES utf8mb4;\nUSE training;

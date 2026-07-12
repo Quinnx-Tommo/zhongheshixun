@@ -7,7 +7,9 @@
 > - `docs/开发文档.md` — 编码/实现权威参考（含完整 API 与数据库字段）
 > - `docs/设计文档.md` — 架构/API/数据库/分工/生产级方案
 > - `docs/需求偏差说明.md` — docx 需求对照（v2.0 已修订为 100% 覆盖）
-> - `docs/database.sql` — 数据库初始化脚本（20 张表 + 示例数据）
+> - `docs/database.sql` — 数据库初始化脚本（21 张表 + 示例数据 + V2_1 schema 修复）
+> - `docs/db-upgrade-from-v1.sql` — 增量升级脚本（V2_0 RBAC + V2_1 修复，幂等）
+> - `docs/db-upgrade-README.md` — 数据库更新指南（3 种部署场景）
 > - `docs/进度文档.md` — 当前开发进度
 
 ---
@@ -294,7 +296,7 @@ SELECT COUNT(*) FROM question;   -- 应返回 4
 # source docs/database-v2.sql   （如存在）
 ```
 
-> 脚本包含：创建数据库 `training` → 20 张表（`sys_user`/`sys_role`/`sys_permission`/`sys_user_role`/`sys_role_permission` + 业务 15 张）→ 示例数据。
+> 脚本包含：创建数据库 `training` → 21 张表（`sys_user` + RBAC 3 张 `sys_role`/`sys_permission`/`sys_role_permission` + 业务 17 张）→ 9 个示例账号 + 培训数据。V2_1 schema 修复已内置。
 
 ### 1.8 默认账号
 
