@@ -19,6 +19,14 @@
           <el-icon><component :is="m.icon" /></el-icon>
           <span>{{ m.title }}</span>
         </el-menu-item>
+        <!-- 讲师专属菜单：仅 TEACHER 角色可见 -->
+        <template v-if="isTeacher">
+          <div class="main-layout__menu-divider"><span>讲师工作台</span></div>
+          <el-menu-item v-for="m in teacherMenus" :key="m.path" :index="m.path">
+            <el-icon><component :is="m.icon" /></el-icon>
+            <span>{{ m.title }}</span>
+          </el-menu-item>
+        </template>
       </el-menu>
     </el-aside>
 
@@ -27,6 +35,16 @@
       <el-header class="main-layout__header">
         <div class="main-layout__header-title">{{ pageTitle }}</div>
         <div class="main-layout__header-actions">
+          <!-- ADMIN 角色：显示进入管理后台按钮 -->
+          <el-button
+            v-if="isAdmin"
+            type="primary"
+            size="small"
+            class="main-layout__admin-btn"
+            @click="goAdmin"
+          >
+            进入管理后台
+          </el-button>
           <el-dropdown @command="handleCommand">
             <span class="main-layout__header-user">
               <el-avatar :size="32" class="main-layout__header-avatar">
@@ -75,12 +93,19 @@ import {
   ChatDotRound,
   User,
   ArrowDown,
+  School,
+  Tickets,
+  ChatLineSquare,
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+
+// 角色判断
+const isTeacher = computed(() => (userStore.roleCode || '') === 'TEACHER')
+const isAdmin = computed(() => (userStore.roleCode || '') === 'ADMIN')
 
 // 角色显示文案与 el-tag 类型（顶部 Badge 视觉提示）
 const roleBadge = computed(() => {
@@ -107,9 +132,21 @@ const coreMenus = [
   { path: '/profile', title: '个人中心', icon: User },
 ]
 
+// 3 个讲师专属菜单：仅 TEACHER 角色可见
+const teacherMenus = [
+  { path: '/teacher/my-courses', title: '我的课程', icon: School },
+  { path: '/teacher/question-bank', title: '题库管理', icon: Tickets },
+  { path: '/teacher/consult-manage', title: '咨询回复', icon: ChatLineSquare },
+]
+
+// ADMIN 跳转管理后台
+function goAdmin() {
+  window.location.href = 'http://localhost:5176/'
+}
+
 const activeMenu = computed(() => {
   const path = route.path
-  const items = coreMenus.map((m) => m.path)
+  const items = [...coreMenus, ...teacherMenus].map((m) => m.path)
   const exact = items.find((m) => m === path)
   if (exact) return exact
   const candidates = items
