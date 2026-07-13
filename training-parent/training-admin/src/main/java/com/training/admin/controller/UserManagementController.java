@@ -1,13 +1,17 @@
 package com.training.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.training.common.dto.ChangePasswordDTO;
+import com.training.common.dto.ResetPasswordDTO;
 import com.training.common.dto.UserForm;
 import com.training.common.dto.UserPageQuery;
 import com.training.common.entity.SysUser;
 import com.training.common.result.Result;
+import com.training.admin.security.LoginUser;
 import com.training.service.SysUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -95,5 +99,32 @@ public class UserManagementController {
         // 过滤敏感字段
         user.setPassword(null);
         return Result.success(user);
+    }
+
+    /**
+     * 修改个人密码（需校验原密码）
+     * <p>登录用户自助修改密码，无需管理员权限；通过 token 解析当前用户ID。</p>
+     */
+    @PreAuthorize("hasAuthority('user:read')")
+    @PutMapping("/profile/password")
+    public Result<Boolean> changePassword(@AuthenticationPrincipal LoginUser loginUser,
+                                          @RequestBody @Valid ChangePasswordDTO dto) {
+        if (loginUser == null || loginUser.getId() == null) {
+            return Result.error(401, "未登录或登录已失效");
+        }
+        boolean ok = userService.changePassword(loginUser.getId(), dto.getOldPassword(), dto.getNewPassword());
+        return Result.success(ok);
+    }
+
+    /**
+     * 管理员重置他人密码（无需原密码）
+     * <p>管理员忘记用户密码时的兜底接口，需 user:write 权限。</p>
+     */
+    @PreAuthorize("hasAuthority('user:write')")
+    @PutMapping("/{id}/reset-password")
+    public Result<Boolean> resetPassword(@PathVariable Long id,
+                                         @RequestBody @Valid ResetPasswordDTO dto) {
+        boolean ok = userService.resetPassword(id, dto.getNewPassword());
+        return Result.success(ok);
     }
 }

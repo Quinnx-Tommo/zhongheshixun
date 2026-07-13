@@ -12,6 +12,9 @@ import java.util.List;
 @Data
 public class RoleForm {
 
+    /** 角色ID（编辑时必传） */
+    private Long id;
+
     /** 角色编码，如 ADMIN / TEACHER / STUDENT */
     @NotBlank(message = "角色编码不能为空")
     @Size(max = 50, message = "角色编码长度不能超过 50")

@@ -53,4 +53,23 @@ public interface SysUserService extends IService<SysUser> {
      * 启用/禁用用户
      */
     boolean updateStatus(Long id, Integer status);
+
+    /**
+     * 修改个人密码（需校验原密码）
+     *
+     * @param userId      当前登录用户ID
+     * @param oldPassword 原密码
+     * @param newPassword 新密码（明文，由 service 层 BCrypt 加密入库）
+     * @return 是否修改成功
+     */
+    boolean changePassword(Long userId, String oldPassword, String newPassword);
+
+    /**
+     * 管理员重置他人密码（无需原密码）
+     *
+     * @param userId      目标用户ID
+     * @param newPassword 新密码（明文，由 service 层 BCrypt 加密入库）
+     * @return 是否重置成功
+     */
+    boolean resetPassword(Long userId, String newPassword);
 }

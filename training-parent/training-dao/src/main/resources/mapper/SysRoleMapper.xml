@@ -12,12 +12,37 @@
         <result column="create_time" property="createTime"/>
     </resultMap>
 
+    <sql id="Base_Column_List">
+        id, role_code, role_name, description, status, create_time, deleted
+    </sql>
+
     <select id="selectByCode" resultMap="BaseResultMap">
         SELECT *
         FROM sys_role
         WHERE role_code = #{roleCode}
           AND deleted = 0
         LIMIT 1
+    </select>
+
+    <select id="selectRolePage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_role
+        WHERE deleted = 0
+        <if test="roleCode != null and roleCode != ''">
+            AND role_code LIKE CONCAT('%', #{roleCode}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY id ASC
+    </select>
+
+    <select id="selectAllEnabled" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_role
+        WHERE deleted = 0
+          AND status = 1
+        ORDER BY id ASC
     </select>
 
 </mapper>

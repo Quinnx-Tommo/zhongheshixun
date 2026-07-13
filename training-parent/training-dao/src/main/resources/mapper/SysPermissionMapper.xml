@@ -12,6 +12,10 @@
         <result column="create_time" property="createTime"/>
     </resultMap>
 
+    <sql id="Base_Column_List">
+        id, perm_code, perm_name, description, module, create_time, deleted
+    </sql>
+
     <select id="selectByRoleId" resultMap="BaseResultMap">
         SELECT p.*
         FROM sys_permission p
@@ -19,6 +23,34 @@
         WHERE rp.role_id = #{roleId}
           AND p.deleted = 0
         ORDER BY p.module ASC, p.id ASC
+    </select>
+
+    <select id="selectByCode" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_permission
+        WHERE perm_code = #{permCode}
+          AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectPermissionPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_permission
+        WHERE deleted = 0
+        <if test="module != null and module != ''">
+            AND module = #{module}
+        </if>
+        <if test="permCode != null and permCode != ''">
+            AND perm_code LIKE CONCAT('%', #{permCode}, '%')
+        </if>
+        ORDER BY module ASC, id ASC
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_permission
+        WHERE deleted = 0
+        ORDER BY module ASC, id ASC
     </select>
 
 </mapper>

@@ -187,4 +187,38 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setStatus(status);
         return updateById(user);
     }
+
+    @Override
+    public boolean changePassword(Long userId, String oldPassword, String newPassword) {
+        if (userId == null) {
+            throw new IllegalArgumentException("用户ID不能为空");
+        }
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        // 校验原密码（防止 token 被盗后直接改密）
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("原密码不正确");
+        }
+        // 新旧密码相同则不重复写入
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            return true;
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        return updateById(user);
+    }
+
+    @Override
+    public boolean resetPassword(Long userId, String newPassword) {
+        if (userId == null) {
+            throw new IllegalArgumentException("用户ID不能为空");
+        }
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        return updateById(user);
+    }
 }
