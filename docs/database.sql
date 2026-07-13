@@ -448,11 +448,11 @@ INSERT INTO teacher (id,user_id,real_name,title,education,direction,intro,create
 (2,3,'李主任','副主任医师','硕士','公共卫生','公共卫生领域专家,主持多项省级课题','2026-07-09 00:00:00',0);
 
 -- 课程数据(4 门)
-INSERT INTO course (id,title,description,teacher_id,course_type,total_hours,status,offline_flag,create_time,deleted) VALUES
-(1,'基层常见病诊疗规范','针对基层医生的常见病诊疗规范培训',1,2,40,1,0,'2026-07-09 00:00:00',0),
-(2,'公共卫生服务实务','基本公共卫生服务实务培训',         2,2,30,1,0,'2026-07-09 00:00:00',0),
-(3,'急救技能培训','基层急救技能培训',                      1,1,20,1,0,'2026-07-09 00:00:00',0),
-(4,'护理基础操作','护理基础操作规范',                      2,1,25,2,0,'2026-07-09 00:00:00',0);
+INSERT INTO course (id,title,description,teacher_id,course_type,total_hours,status,offline_flag,cover_url,create_time,deleted) VALUES
+(1,'基层常见病诊疗规范','针对基层医生的常见病诊疗规范培训',1,2,40,1,0,'https://picsum.photos/seed/course1/400/225','2026-07-09 00:00:00',0),
+(2,'公共卫生服务实务','基本公共卫生服务实务培训',         2,2,30,1,0,'https://picsum.photos/seed/course2/400/225','2026-07-09 00:00:00',0),
+(3,'急救技能培训','基层急救技能培训',                      1,1,20,1,0,'https://picsum.photos/seed/course3/400/225','2026-07-09 00:00:00',0),
+(4,'护理基础操作','护理基础操作规范',                      2,1,25,2,0,'https://picsum.photos/seed/course4/400/225','2026-07-09 00:00:00',0);
 
 -- 章节数据(5 行)
 INSERT INTO course_chapter (id,course_id,title,sort_order,video_url,duration,create_time,deleted) VALUES
