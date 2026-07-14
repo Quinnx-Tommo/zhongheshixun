@@ -83,8 +83,12 @@
               <div class="consult-page__history-meta">
                 <el-tag v-if="item.isAuto === 1" size="small" type="success">自动回复</el-tag>
                 <el-tag v-else-if="item.isAuto === 2" size="small" type="primary">人工回复</el-tag>
+                <el-tag v-else-if="item.slaExceeded === 1" size="small" type="danger" effect="dark">超时</el-tag>
                 <el-tag v-else size="small" type="warning">待回复</el-tag>
                 <span class="consult-page__history-time">{{ formatTime(item.createTime) }}</span>
+              </div>
+              <div v-if="!item.answer && item.slaExceeded === 1" class="consult-page__history-sla">
+                已超时，老师正在加急处理...
               </div>
             </div>
           </div>
@@ -307,5 +311,11 @@ onMounted(() => {
 }
 .consult-page__history-time {
   margin-left: auto;
+}
+.consult-page__history-sla {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #f5222d;
+  font-weight: 500;
 }
 </style>

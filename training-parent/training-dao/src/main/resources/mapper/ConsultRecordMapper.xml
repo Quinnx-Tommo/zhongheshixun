@@ -11,22 +11,36 @@
         <result column="is_auto" property="isAuto"/>
         <result column="create_time" property="createTime"/>
         <result column="reply_time" property="replyTime"/>
+        <result column="sla_exceeded" property="slaExceeded"/>
     </resultMap>
 
+    <!-- 查询 SLA 超时工单：未回复 且 create_time 距今 >= slaMinutes 分钟 -->
     <select id="selectOverdue" resultMap="BaseResultMap">
         SELECT * FROM consult_record
         WHERE deleted = 0
           AND answer IS NULL
           AND reply_time IS NULL
-          AND create_time &lt; DATE_SUB(NOW(), INTERVAL #{slaHours} HOUR)
+          AND TIMESTAMPDIFF(MINUTE, create_time, NOW()) &gt;= #{slaMinutes}
         ORDER BY create_time ASC
     </select>
+
+    <!-- 批量标记超时：把未回复且超时的工单的 sla_exceeded 置 1 -->
+    <update id="markSlaExceeded">
+        UPDATE consult_record
+        SET sla_exceeded = 1
+        WHERE deleted = 0
+          AND answer IS NULL
+          AND reply_time IS NULL
+          AND sla_exceeded = 0
+          AND TIMESTAMPDIFF(MINUTE, create_time, NOW()) &gt;= #{slaMinutes}
+    </update>
 
     <update id="updateReply">
         UPDATE consult_record
         SET answer = #{answer},
             is_auto = #{isAuto},
-            reply_time = #{replyTime}
+            reply_time = #{replyTime},
+            sla_exceeded = 0
         WHERE id = #{id}
           AND deleted = 0
     </update>
