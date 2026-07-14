@@ -332,8 +332,10 @@ CREATE TABLE consult_record (
   is_auto TINYINT DEFAULT 1 COMMENT '类型:1 智能回答 2 人工回答 0 待处理',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
   reply_time DATETIME COMMENT '回复时间(用于 SLA 统计)',
+  sla_exceeded TINYINT NOT NULL DEFAULT 0 COMMENT 'SLA超时标记:0 否 1 是(由定时任务扫描 create_time 距今超过 SLA_MINUTES 阈值时自动标记)',
   deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除:0 正常 1 已删',
-  KEY idx_consult_student (student_id)
+  KEY idx_consult_student (student_id),
+  KEY idx_sla_exceeded (sla_exceeded)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='咨询记录表';
 
 -- 咨询关键词路由配置表（方案A: AI优先+关键词转人工）
@@ -552,17 +554,19 @@ INSERT INTO study_record (student_id,course_id,chapter_id,progress,study_duratio
 INSERT INTO exam_record (id,student_id,exam_id,paper_id,score,status,start_time,submit_time) VALUES
 (2, 5, 2, NULL, 0, 0, '2026-07-09 16:00:00', NULL);
 
--- consult_record: SLA 演示 (2 条已人工回复 reply_time <60 秒 + 1 条 is_auto=0 待处理)
-INSERT INTO consult_record (student_id,question,answer,is_auto,create_time,reply_time) VALUES
+-- consult_record: SLA 演示
+-- 2 条已人工回复 (reply_time - create_time < 60 秒, sla_exceeded=0)
+-- 1 条待处理且已超时 (create_time 距今远超 1 分钟, sla_exceeded=1)
+INSERT INTO consult_record (student_id,question,answer,is_auto,create_time,reply_time,sla_exceeded) VALUES
 (4,'如何重考不及格的考试?',
    '登录后进入"考试中心"，找到不及格考试，若 max_retry 未用尽可点"重考"按钮。剩余重考次数以考试设置为准。',
-   2,'2026-07-09 09:00:00','2026-07-09 09:00:45'),
+   2,'2026-07-09 09:00:00','2026-07-09 09:00:45',0),
 (6,'离线课件下载后怎么观看?',
    '进入"课程详情"页，点击"下载"保存 ZIP 包（仅 offline_filename 非空的课程支持），离线状态下仍可进入课程播放页',
-   2,'2026-07-09 10:30:00','2026-07-09 10:30:38'),
+   2,'2026-07-09 10:30:00','2026-07-09 10:30:38',0),
 (8,'少数民族语言课程什么时候上线?',
    '目前平台已完成多语言接口预留，具体语言包上线以省卫健委公告为准。已转产品开发团队跟进。',
-   0,'2026-07-09 14:00:00',NULL);
+   0,'2026-07-09 14:00:00',NULL,1);
 
 -- 咨询关键词路由预置数据（命中即转人工）
 INSERT INTO consult_keyword (keyword, action, sort_order, enabled) VALUES

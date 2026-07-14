@@ -125,11 +125,19 @@ public class ConsultServiceImpl implements ConsultService {
     }
 
     @Override
-    public List<ConsultRecord> getOverdueConsults(int slaHours) {
-        if (slaHours <= 0) {
-            slaHours = 24;
+    public List<ConsultRecord> getOverdueConsults(int slaMinutes) {
+        if (slaMinutes <= 0) {
+            slaMinutes = 1;
         }
-        return consultRecordMapper.selectOverdue(slaHours);
+        return consultRecordMapper.selectOverdue(slaMinutes);
+    }
+
+    @Override
+    public int markSlaExceeded(int slaMinutes) {
+        if (slaMinutes <= 0) {
+            slaMinutes = 1;
+        }
+        return consultRecordMapper.markSlaExceeded(slaMinutes);
     }
 
     @Override

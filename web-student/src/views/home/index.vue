@@ -50,31 +50,40 @@
       <el-col :xs="24" :md="12">
         <el-card shadow="never" class="home-page__continue">
           <template #header>
-            <span class="home-page__section-title">继续学习</span>
+            <span class="home-page__section-title">最近学习</span>
           </template>
-          <div v-if="inProgressCourses.length === 0" class="home-page__empty">
-            暂无进行中的课程，去
+          <div v-if="recentCourses.length === 0" class="home-page__empty">
+            暂无学习中的课程，去
             <router-link to="/courses">课程中心</router-link>
             选课吧～
           </div>
           <div
-            v-for="course in inProgressCourses"
+            v-for="course in recentCourses"
             :key="course.id"
             class="continue-item"
           >
             <div class="continue-item__info">
-              <div class="continue-item__title">{{ course.title }}</div>
+              <div class="continue-item__title">
+                {{ course.title }}
+                <el-tag
+                  v-if="(course.progress ?? 0) >= 100"
+                  size="small"
+                  type="success"
+                  class="continue-item__done-tag"
+                >已完成</el-tag>
+              </div>
               <el-progress
                 :percentage="course.progress ?? 0"
                 :stroke-width="8"
+                :status="(course.progress ?? 0) >= 100 ? 'success' : undefined"
               />
             </div>
             <el-button
-              type="primary"
+              :type="(course.progress ?? 0) >= 100 ? 'success' : 'primary'"
               size="small"
               @click="router.push(`/courses/${course.id}/learn`)"
             >
-              继续学习
+              {{ (course.progress ?? 0) >= 100 ? '复习' : '继续学习' }}
             </el-button>
           </div>
         </el-card>
@@ -164,10 +173,31 @@ const displayedStats = computed(() => ({
   examCount: safeNumber(stats.value.examCount),
 }))
 
-// 进行中的课程（进度 < 100%）
-const inProgressCourses = computed(() =>
-  myCourses.value.filter((c) => (c.progress ?? 0) < 100).slice(0, 5)
-)
+// 最近学习：显示所有已报名课程（含已完成），取前 5 条
+// 与小程序首页"最近学习"口径一致：
+//  1) 已完成的课程不会消失
+//  2) 按 localStorage recentCourseIds 排序，最近点开的课程排在前面
+const recentCourses = computed(() => {
+  const list = [...myCourses.value]
+  try {
+    const recentIds = JSON.parse(localStorage.getItem('recentCourseIds') || '[]')
+    if (recentIds.length > 0) {
+      const idIndex = {}
+      recentIds.forEach((id, i) => { idIndex[String(id)] = i })
+      list.sort((a, b) => {
+        const ai = idIndex[String(a.id)]
+        const bi = idIndex[String(b.id)]
+        if (ai != null && bi != null) return ai - bi
+        if (ai != null) return -1
+        if (bi != null) return 1
+        return 0
+      })
+    }
+  } catch (e) {
+    // localStorage 解析失败，保持原顺序
+  }
+  return list.slice(0, 5)
+})
 
 // 趋势图：后端 recent7Days → 适配为 trendData → toChartOption（真实优先，mock 兜底）
 const chartData = computed(() => ({ trendData: stats.value.recent7Days }))
@@ -319,6 +349,12 @@ onMounted(fetchData)
   margin-bottom: 6px;
   font-size: 14px;
   color: #303133;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.continue-item__done-tag {
+  flex-shrink: 0;
 }
 .rec-card {
   cursor: pointer;

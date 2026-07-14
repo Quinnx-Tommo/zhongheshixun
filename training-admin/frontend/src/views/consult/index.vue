@@ -35,6 +35,13 @@
             <el-tag v-else type="warning" size="small">待回复</el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="SLA" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="isOverdue(row)" type="danger" size="small" effect="dark">超时</el-tag>
+            <el-tag v-else-if="!row.answer" type="warning" size="small">待回复</el-tag>
+            <el-tag v-else type="success" size="small">达标</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="createTime" label="提问时间" width="170" align="center" />
         <el-table-column prop="replyTime" label="回复时间" width="170" align="center">
           <template #default="{ row }">
@@ -127,12 +134,14 @@ const replyRules: FormRules = {
   ]
 }
 
-// SLA 超时判断（未回复超过 24 小时）
+// SLA 超时判断（未回复超过 1 分钟，与教师要求 SLA < 1min 一致）
+// 优先使用后端持久化的 slaExceeded 字段；前端兜底再算一次 createTime 距今时长
 function isOverdue(row: any) {
   if (row.replyTime || row.answer) return false
+  if (row.slaExceeded === 1) return true
   if (!row.createTime) return false
   const create = new Date(row.createTime).getTime()
-  return Date.now() - create > 24 * 3600 * 1000
+  return Date.now() - create > 60 * 1000
 }
 
 async function loadPage() {
@@ -155,13 +164,13 @@ async function loadPage() {
 async function loadSlaAlert() {
   loading.value = true
   try {
-    const res: any = await getSlaAlert(24)
+    const res: any = await getSlaAlert(1)
     records.value = (res.data || res) || []
     total.value = records.value.length
     if (records.value.length === 0) {
-      ElMessage.success('当前无超时工单')
+      ElMessage.success('当前无超时工单（SLA < 1 分钟达标）')
     } else {
-      ElMessage.warning(`发现 ${records.value.length} 条超时工单`)
+      ElMessage.warning(`发现 ${records.value.length} 条 SLA 超时工单（>1 分钟未回复）`)
     }
   } finally {
     loading.value = false

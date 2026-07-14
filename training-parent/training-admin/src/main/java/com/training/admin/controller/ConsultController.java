@@ -58,13 +58,13 @@ public class ConsultController {
     }
 
     /**
-     * SLA 超时告警列表（默认 24 小时）
+     * SLA 超时告警列表（默认 1 分钟）
      */
     @PreAuthorize("hasAuthority('consult:read')")
     @GetMapping("/sla-alert")
     public Result<List<ConsultRecord>> slaAlert(
-            @RequestParam(defaultValue = "24") int slaHours) {
-        List<ConsultRecord> list = consultService.getOverdueConsults(slaHours);
+            @RequestParam(defaultValue = "1") int slaMinutes) {
+        List<ConsultRecord> list = consultService.getOverdueConsults(slaMinutes);
         return Result.success(list);
     }
 }

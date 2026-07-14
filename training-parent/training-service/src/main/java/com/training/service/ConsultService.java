@@ -57,12 +57,20 @@ public interface ConsultService {
     void reply(Long consultId, String answer);
 
     /**
-     * SLA 超时告警：未回复超过 slaHours（默认24小时）的工单
+     * SLA 超时告警：未回复 且 create_time 距今 >= slaMinutes 分钟的工单
      *
-     * @param slaHours 超时阈值（小时）
+     * @param slaMinutes 超时阈值（分钟），<=0 时使用默认值 1 分钟
      * @return 超时工单列表
      */
-    List<ConsultRecord> getOverdueConsults(int slaHours);
+    List<ConsultRecord> getOverdueConsults(int slaMinutes);
+
+    /**
+     * 批量标记 SLA 超时：把未回复且超时的工单 sla_exceeded 置 1
+     *
+     * @param slaMinutes 超时阈值（分钟），<=0 时使用默认值 1 分钟
+     * @return 本次新标记为超时的工单数
+     */
+    int markSlaExceeded(int slaMinutes);
 
     /**
      * 分页查询咨询记录
