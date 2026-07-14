@@ -358,15 +358,7 @@ public class ExamBizServiceImpl implements ExamBizService {
         log.info("管理员 {} 生成考试 {} 模板试卷，题目数={}, paperId={}",
                 adminId, examId, questionIds.size(), paperId);
 
-        // 4. 回写到 exam.questionIds 字段，使学员开考时共用同一张卷
-        //    （startExam 优先级1 读取 exam.questionIds，命中后不再临时抽题）
-        Exam updateExam = new Exam();
-        updateExam.setId(examId);
-        updateExam.setQuestionIds(questionsJson);
-        examMapper.updateById(updateExam);
-        log.info("已将组卷结果回写到 exam.questionIds，examId={}, 题目数={}", examId, questionIds.size());
-
-        // 5. 组装返回
+        // 4. 组装返回
         GenerateResultVO vo = new GenerateResultVO();
         vo.setQuestionIds(questionIds);
         vo.setQuestionCount(questionIds.size());
