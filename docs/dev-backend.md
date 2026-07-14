@@ -1140,26 +1140,31 @@ public class TrainPlanServiceImpl extends ServiceImpl<TrainPlanMapper, TrainPlan
 
 | 规则 | 说明 |
 |------|------|
-| 智能应答 | 关键词匹配知识库，命中直接返回答案（毫秒级响应） |
-| 人工转接 | 无匹配或学员主动要求时，转人工客服队列 |
+| 智能应答 | LongCat AI 自动回复（启用时）；转人工关键词检测命中直接转人工 |
+| 人工转接 | 学员主动要求或 AI 未启用/失败时，转人工客服队列 |
 | **SLA < 1 分钟** | docx 3.5 明确要求：人工应答时间 < 1 分钟 |
 | SLA 计时起点 | 转人工时记录 `transfer_time` |
 | SLA 告警 | 回复时计算耗时，超时写 `sla_alert` 表 + 日志告警 |
 
-### 7.2 关键词匹配算法（LIKE 查询）
+### 7.2 转人工关键词检测
 
-```xml
-<!-- KnowledgeBaseMapper.xml -->
-<select id="searchByKeywords" resultType="KnowledgeBase">
-    SELECT * FROM knowledge_base
-    WHERE status = 1
-    <foreach collection="keywords" open="AND (" close=")" item="kw" separator="OR">
-        question LIKE CONCAT('%', #{kw}, '%')
-        OR keywords LIKE CONCAT('%', #{kw}, '%')
-    </foreach>
-    ORDER BY create_time DESC
-    LIMIT 1
-</select>
+```java
+private static final List<String> TRANSFER_KEYWORDS =
+    Arrays.asList("转人工", "找老师", "人工客服", "联系客服", "找人工", "客服");
+
+/**
+ * 检测问题中是否包含转人工关键词。
+ * 命中则直接转人工工单，跳过 LongCat AI 自动回复。
+ * 关键词来源：consult_keyword 表（v1.3.0 新增，可后台扩展）。
+ */
+private boolean containsTransferKeyword(String question) {
+    if (StringUtils.isBlank(question)) {
+        return false;
+    }
+    String lowerQuestion = question.toLowerCase();
+    return TRANSFER_KEYWORDS.stream()
+        .anyMatch(lowerQuestion::contains);
+}
 ```
 
 ### 7.3 ⭐ SLA <1 分钟机制完整实现
@@ -1169,7 +1174,7 @@ public class TrainPlanServiceImpl extends ServiceImpl<TrainPlanMapper, TrainPlan
 public class ConsultServiceImpl extends ServiceImpl<ConsultRecordMapper, ConsultRecord> implements ConsultService {
 
     @Autowired
-    private KnowledgeBaseMapper knowledgeBaseMapper;
+    private LongCatAiService longCatAiService;
 
     @Autowired
     private SlaAlertMapper slaAlertMapper;
@@ -1177,36 +1182,46 @@ public class ConsultServiceImpl extends ServiceImpl<ConsultRecordMapper, Consult
     private static final long SLA_THRESHOLD_SECONDS = 60;  // docx 要求 < 1 分钟
 
     /**
-     * 学员提问：关键词匹配 → 无匹配转人工（记录 transfer_time）
+     * 学员提问：转人工关键词检测 → LongCat AI 自动回复 → 兜底转人工（记录 transfer_time）
      */
     @Override
     public AskVO ask(Long studentId, AskDTO dto) {
-        // ===== 步骤1：提取关键词 =====
-        List<String> keywords = extractKeywords(dto.getQuestion());
-
-        // ===== 步骤2：查询知识库 =====
-        List<KnowledgeBase> list = knowledgeBaseMapper.searchByKeywords(keywords);
-
         ConsultRecord record = new ConsultRecord();
         record.setStudentId(studentId);
         record.setQuestion(dto.getQuestion());
 
         AskVO vo = new AskVO();
 
-        if (!list.isEmpty()) {
-            // ===== 步骤3a：命中，自动回复 =====
-            record.setAnswer(list.get(0).getAnswer());
+        // ===== 步骤1：检测转人工关键词，命中直接转人工 =====
+        if (containsTransferKeyword(dto.getQuestion())) {
+            record.setAnswer("已转人工客服");
+            record.setIsAuto(0);
+            record.setTransferTime(LocalDateTime.now());   // SLA 计时起点
+            save(record);
+
+            vo.setConsultId(record.getId());
+            vo.setAutoReply("正在为您转接人工客服...");
+            vo.setMatched(false);
+            return vo;
+        }
+
+        // ===== 步骤2：调用 LongCat AI 自动回复（启用时） =====
+        String aiReply = longCatAiService.ask(dto.getQuestion());
+
+        if (StringUtils.hasText(aiReply)) {
+            // ===== 步骤3a：AI 命中，自动回复 =====
+            record.setAnswer(aiReply);
             record.setIsAuto(1);
             save(record);
 
             vo.setConsultId(record.getId());
-            vo.setAutoReply(list.get(0).getAnswer());
+            vo.setAutoReply(aiReply);
             vo.setMatched(true);
             return vo;
         }
 
-        // ===== 步骤3b：无匹配 → 转人工，记录 SLA 计时起点 =====
-        record.setAnswer("未找到匹配答案，已转人工客服");
+        // ===== 步骤3b：AI 未启用或失败 → 兜底转人工，记录 SLA 计时起点 =====
+        record.setAnswer("AI 暂不可用，已转人工客服");
         record.setIsAuto(0);
         record.setTransferTime(LocalDateTime.now());   // SLA 计时起点
         save(record);

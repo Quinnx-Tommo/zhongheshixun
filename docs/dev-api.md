@@ -617,14 +617,14 @@ Authorization: Bearer <token>
 
 ## 11. 咨询模块
 
-### 11.1 小程序 - 发起咨询（智能匹配 + 转人工）
+### 11.1 小程序 - 发起咨询（LongCat AI + 转人工）
 
 | 项目 | 说明 |
 |------|------|
 | 接口路径 | `POST /api/consult/ask` |
 | 请求参数 (JSON) | `{ "question": "string" }` |
 | 响应 (JSON) | `{ "consultId": 1, "autoReply": "string", "matched": true }` |
-| 说明 | 优先关键词匹配知识库自动回复；未匹配则转人工工单。 |
+| 说明 | 优先检测转人工关键词（命中则直接转人工工单）；未命中则调用 LongCat AI 自动回复；AI 未启用或失败时兜底转人工工单。 |
 
 **请求示例：**
 
@@ -659,23 +659,6 @@ Authorization: Bearer <token>
 | 请求参数 (Query) | `pageNum`、`pageSize`、`slaHours`（可选，默认 24） |
 | 响应 (JSON) | 超时未回复咨询列表，含 `id, title, studentName, createTime, overdueHours` |
 | 说明 | 超过 `slaHours` 未回复的工单进入告警列表。 |
-
-### 11.5 知识库列表
-
-| 项目 | 说明 |
-|------|------|
-| 接口路径 | `GET /admin/knowledge-base/list` |
-| 请求参数 (Query) | `pageNum`、`pageSize`、`keyword`（可选） |
-| 响应 (JSON) | 分页知识库列表，含 `id, title, keywords, content, updateTime` |
-
-### 11.6 新增知识库条目
-
-| 项目 | 说明 |
-|------|------|
-| 接口路径 | `POST /admin/knowledge-base/add` |
-| 请求参数 (JSON) | `{ "title": "string", "keywords": "string", "content": "string" }` |
-| 响应 (JSON) | 新建知识库信息 |
-| 说明 | `keywords` 为逗号分隔的关键词，用于智能匹配。 |
 
 ---
 
@@ -880,8 +863,6 @@ Authorization: Bearer <token>
 | `/admin/consult/list` | GET | ✓ | ✓ | - |
 | `/admin/consult/reply` | POST | ✓ | ✓ | - |
 | `/admin/consult/sla-list` | GET | ✓ | - | - |
-| `/admin/knowledge-base/list` | GET | ✓ | ✓ | - |
-| `/admin/knowledge-base/add` | POST | ✓ | - | - |
 
 ### 13.11 统计模块
 
@@ -996,9 +977,9 @@ public class ConsultApiController {
     @PostMapping("/ask")
     public Result<AskVO> ask(@RequestBody AskDTO dto,
                              @RequestAttribute("userId") Long userId) {
-        // 对 question 做关键词提取
-        // 匹配知识库 keywords，命中则返回 autoReply（matched=true）
-        // 未命中则创建人工工单（matched=false），等待 admin 回复
+        // 1. 检测转人工关键词（命中"转人工/找老师"等 → 直接人工工单）
+        // 2. 调用 LongCat AI 自动回复（启用时），成功则返回 autoReply（matched=true）
+        // 3. AI 未启用或调用失败 → 兜底创建人工工单（matched=false），等待 admin 回复
     }
 }
 ```

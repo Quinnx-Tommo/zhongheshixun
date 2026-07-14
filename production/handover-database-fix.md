@@ -44,7 +44,9 @@ SELECT id, HEX(real_name), real_name FROM sys_user;
 -- 2  | 3F3F3F         | ???      ← 应该是 "张教授"
 ```
 
-受影响的字段（42 个）：`sys_user.real_name/org_name/job_type`、`teacher.real_name/title/direction/intro`、`course.title/description`、`course_chapter.title`、`exam.title`、`question.title`、`knowledge_point.name`、`knowledge_base.question/answer`、`consult_record.question/answer` 等。
+受影响的字段（40 个）：`sys_user.real_name/org_name/job_type`、`teacher.real_name/title/direction/intro`、`course.title/description`、`course_chapter.title`、`exam.title`、`question.title`、`knowledge_point.name`、`consult_record.question/answer` 等。
+
+> 已废弃：原 `knowledge_base.question/answer` 字段已从 DDL 移除（`knowledge_base` 表已删除），不再受此问题影响。
 
 **全部是 `3F3F3F...`**.
 

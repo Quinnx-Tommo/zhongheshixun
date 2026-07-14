@@ -70,8 +70,6 @@ DROP TABLE IF EXISTS course;
 DROP TABLE IF EXISTS study_record;
 -- 资源文件表
 DROP TABLE IF EXISTS resource_file;
--- 知识库表
-DROP TABLE IF EXISTS knowledge_base;
 -- 培训讲师表
 DROP TABLE IF EXISTS teacher;
 -- 角色-权限关联表
@@ -325,18 +323,6 @@ CREATE TABLE plan_course (
   KEY idx_plan_course_course (course_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='计划关联课程表';
 
--- 知识库表
-CREATE TABLE knowledge_base (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  question VARCHAR(500) NOT NULL COMMENT '问题',
-  answer TEXT NOT NULL COMMENT '回答',
-  keywords VARCHAR(200) DEFAULT NULL COMMENT '关键词(逗号分隔,用于匹配)',
-  category VARCHAR(50) DEFAULT NULL COMMENT '分类',
-  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除:0 正常 1 已删'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='知识库表';
-
 -- 咨询记录表
 CREATE TABLE consult_record (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -503,14 +489,6 @@ INSERT INTO plan_course (id,plan_id,course_id,sort_order,is_required,create_time
 (1,1,1,1,1,'2026-07-09 00:00:00',0),
 (2,1,2,2,1,'2026-07-09 00:00:00',0),
 (3,1,3,3,0,'2026-07-09 00:00:00',0);
-
--- 知识库数据(5 条,智能问答)
-INSERT INTO knowledge_base (id,question,answer,keywords,category,create_time,deleted) VALUES
-(1,'如何报名课程?','在课程列表中选择课程,点击"报名"按钮即可报名。','报名,课程,如何报名','平台使用','2026-07-09 00:00:00',0),
-(2,'考试不及格怎么办?','可以参加重考,具体重考次数以考试设置为准。','考试,不及格,重考','考试相关','2026-07-09 00:00:00',0),
-(3,'学习进度如何查看?',"在'我的课程'中可以查看每门课程的学习进度。","学习进度,查看,我的课程",'学习相关','2026-07-09 00:00:00',0),
-(4,'忘记密码怎么办?','请联系系统管理员重置密码。','密码,忘记,重置','账户相关','2026-07-09 00:00:00',0),
-(5,'如何下载离线课件?','在课程详情页点击"下载"按钮即可。','下载,离线,ZIP','平台使用','2026-07-09 00:00:00',0);
 
 -- 资源文件数据(3 行)
 INSERT INTO resource_file (id,course_id,file_name,file_url,file_type,file_size,uploader_id,create_time,deleted) VALUES

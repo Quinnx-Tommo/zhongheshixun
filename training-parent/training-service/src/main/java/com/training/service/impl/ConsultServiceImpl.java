@@ -5,10 +5,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.training.common.entity.ConsultKeyword;
 import com.training.common.entity.ConsultRecord;
-import com.training.common.entity.KnowledgeBase;
 import com.training.mapper.ConsultKeywordMapper;
 import com.training.mapper.ConsultRecordMapper;
-import com.training.mapper.KnowledgeBaseMapper;
 import com.training.service.ConsultService;
 import com.training.service.ai.LongCatAiService;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +16,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * 咨询服务实现
@@ -37,12 +31,6 @@ import java.util.regex.Pattern;
 @Slf4j
 @Service
 public class ConsultServiceImpl implements ConsultService {
-
-    /** 关键词分隔符：中英文逗号、空格、制表符等 */
-    private static final Pattern KEYWORD_SPLIT = Pattern.compile("[,，\\s]+");
-
-    @Resource
-    private KnowledgeBaseMapper knowledgeBaseMapper;
 
     @Resource
     private ConsultRecordMapper consultRecordMapper;
@@ -194,42 +182,5 @@ public class ConsultServiceImpl implements ConsultService {
                         .set(ConsultRecord::getReplyTime, null);
         consultRecordMapper.update(null, wrapper);
         log.info("学员主动转人工: consultId={}, userId={}", consultId, userId);
-    }
-
-    /**
-     * 从问题中提取关键词列表
-     * 策略：
-     * 1. 先按中英文逗号、空格等分隔符拆分
-     * 2. 如果只有一个长字符串（中文常见），则同时提取 2-4 字的滑动窗口子串
-     *    这样 "考试没通过可以重考吗" 会生成 "考试","试没","没通"... "重考" 等子串
-     * 3. 同时保留整词作为 keyword（用于 question LIKE 匹配）
-     */
-    private List<String> extractKeywords(String question) {
-        if (!StringUtils.hasText(question)) {
-            return java.util.Collections.emptyList();
-        }
-
-        Set<String> result = new LinkedHashSet<>();
-        String trimmed = question.trim();
-
-        // 1. 按分隔符拆分
-        String[] parts = KEYWORD_SPLIT.split(trimmed);
-
-        for (String part : parts) {
-            if (!StringUtils.hasText(part)) continue;
-            part = part.trim();
-            result.add(part);
-
-            // 2. 如果是中文长字符串（>= 4 字），生成 2-3 字滑动窗口
-            if (part.length() >= 4) {
-                for (int len = 2; len <= 3; len++) {
-                    for (int i = 0; i + len <= part.length(); i++) {
-                        result.add(part.substring(i, i + len));
-                    }
-                }
-            }
-        }
-
-        return new ArrayList<>(result);
     }
 }
