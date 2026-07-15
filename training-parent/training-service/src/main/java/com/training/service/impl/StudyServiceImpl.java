@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.training.common.dto.CoursePageQuery;
+import com.training.common.dto.CompleteChapterDTO;
 import com.training.common.dto.StudyProgressDTO;
 import com.training.common.entity.Course;
 import com.training.common.entity.CourseEnroll;
@@ -41,7 +42,10 @@ public class StudyServiceImpl extends ServiceImpl<StudyRecordMapper, StudyRecord
         record.setStudentId(userId);
         record.setCourseId(dto.getCourseId());
         record.setChapterId(dto.getChapterId());
-        record.setProgress(dto.getProgress() == null ? 0 : dto.getProgress());
+        // T8: 上限校验防刷（信任前端值 + 上限兜底，不查 chapter 表避免每次心跳 DB 开销）
+        Integer progress = dto.getProgress() == null ? 0 : dto.getProgress();
+        if (progress > 100) progress = 100;
+        record.setProgress(progress);
         record.setStudyDuration(dto.getStudyDuration() == null ? 0 : dto.getStudyDuration());
         record.setLastPosition(dto.getLastPosition() == null ? 0 : dto.getLastPosition());
         // completed: Boolean → 0/1
@@ -53,6 +57,17 @@ public class StudyServiceImpl extends ServiceImpl<StudyRecordMapper, StudyRecord
             record.setCompleted(1);
         }
         baseMapper.upsertProgress(record);
+    }
+
+    @Override
+    public void completeChapter(Long userId, CompleteChapterDTO dto) {
+        // 复用 reportProgress，progress=100 + completed=true，保证 upsert + 上限校验逻辑一致
+        StudyProgressDTO p = new StudyProgressDTO();
+        p.setCourseId(dto.getCourseId());
+        p.setChapterId(dto.getChapterId());
+        p.setProgress(100);
+        p.setCompleted(true);
+        reportProgress(userId, p);
     }
 
     @Override

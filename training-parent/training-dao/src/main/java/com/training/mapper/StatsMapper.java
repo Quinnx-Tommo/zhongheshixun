@@ -5,6 +5,7 @@ import com.training.common.vo.ExamStatVO;
 import com.training.common.vo.MyStatVO;
 import com.training.common.vo.OrgStatVO;
 import com.training.common.vo.OverviewVO;
+import com.training.common.vo.PlatformStatVO;
 import com.training.common.vo.StudentStatVO;
 import com.training.common.vo.TrendVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -67,4 +68,7 @@ public interface StatsMapper {
     /** 学员最近 N 日每日学习时长 */
     List<MyStatVO.DailyHourVO> selectRecentDays(@Param("studentId") Long studentId,
                                                 @Param("days") int days);
+
+    /** 平台运行情况（在线人数/今日活跃/并发考试数） */
+    PlatformStatVO selectPlatform();
 }

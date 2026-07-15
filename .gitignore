@@ -52,6 +52,8 @@ $RECYCLE.BIN/
 
 # ============ 日志 ============
 *.log
+*.log.err
+*.err
 logs/
 *.pid
 *.seed

@@ -3,6 +3,7 @@ package com.training.api.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.training.common.dto.CoursePageQuery;
 import com.training.common.dto.EnrollDTO;
+import com.training.common.dto.CompleteChapterDTO;
 import com.training.common.dto.StudyProgressDTO;
 import com.training.common.entity.Course;
 import com.training.common.result.PageResult;
@@ -86,5 +87,15 @@ public class StudyApiController {
     public Result<Boolean> checkEnrolled(@RequestAttribute("userId") Long userId,
                                          @RequestParam("courseId") Long courseId) {
         return Result.success(studyService.isEnrolled(userId, courseId));
+    }
+
+    /**
+     * 标记章节完成（等价于上报 progress=100 + completed=true）
+     */
+    @PostMapping("/complete-chapter")
+    public Result<Void> completeChapter(@RequestBody @Valid CompleteChapterDTO dto,
+                                        @RequestAttribute("userId") Long userId) {
+        studyService.completeChapter(userId, dto);
+        return Result.success();
     }
 }

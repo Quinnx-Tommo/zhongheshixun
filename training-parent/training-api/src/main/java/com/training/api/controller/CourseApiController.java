@@ -64,25 +64,8 @@ public class CourseApiController {
             total = page.getRecords().size();
         }
 
-        // M13：批量回填 teacherName
-        if (page.getRecords() != null && !page.getRecords().isEmpty()) {
-            Set<Long> teacherIds = new HashSet<>();
-            for (Course c : page.getRecords()) {
-                if (c.getTeacherId() != null) {
-                    teacherIds.add(c.getTeacherId());
-                }
-            }
-            if (!teacherIds.isEmpty()) {
-                List<Teacher> teachers = teacherMapper.selectBatchIds(teacherIds);
-                Map<Long, String> teacherNameMap = teachers.stream()
-                        .collect(Collectors.toMap(Teacher::getId, Teacher::getRealName, (a, b) -> a));
-                for (Course c : page.getRecords()) {
-                    if (c.getTeacherId() != null) {
-                        c.setTeacherName(teacherNameMap.get(c.getTeacherId()));
-                    }
-                }
-            }
-        }
+        // M13：批量回填 teacherName（抽公共方法，list/recommend 共用）
+        fillTeacherName(page.getRecords());
 
         return Result.success(PageResult.of(page.getRecords(), total,
                 (int) page.getCurrent(), (int) page.getSize()));
@@ -161,6 +144,38 @@ public class CourseApiController {
             }
             if (ch.getContent() == null) {
                 ch.setContent(ch.getVideoUrl());
+            }
+        }
+    }
+
+    /**
+     * 推荐课程（按报名数降序，仅已发布，公开接口，无需登录）
+     */
+    @GetMapping("/recommend")
+    public Result<List<Course>> recommend(@RequestParam(defaultValue = "5") int limit) {
+        List<Course> list = courseService.recommend(limit);
+        fillTeacherName(list);
+        return Result.success(list);
+    }
+
+    /**
+     * 批量回填 teacherName（联表 teacher.realName），list/recommend 共用，避免重复代码。
+     */
+    private void fillTeacherName(List<Course> courses) {
+        if (courses == null || courses.isEmpty()) return;
+        Set<Long> teacherIds = new HashSet<>();
+        for (Course c : courses) {
+            if (c.getTeacherId() != null) {
+                teacherIds.add(c.getTeacherId());
+            }
+        }
+        if (teacherIds.isEmpty()) return;
+        List<Teacher> teachers = teacherMapper.selectBatchIds(teacherIds);
+        Map<Long, String> teacherNameMap = teachers.stream()
+                .collect(Collectors.toMap(Teacher::getId, Teacher::getRealName, (a, b) -> a));
+        for (Course c : courses) {
+            if (c.getTeacherId() != null) {
+                c.setTeacherName(teacherNameMap.get(c.getTeacherId()));
             }
         }
     }

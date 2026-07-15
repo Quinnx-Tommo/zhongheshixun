@@ -7,6 +7,7 @@ import com.training.common.vo.CourseStatVO;
 import com.training.common.vo.ExamStatVO;
 import com.training.common.vo.OrgStatVO;
 import com.training.common.vo.OverviewVO;
+import com.training.common.vo.PlatformStatVO;
 import com.training.common.vo.StudentStatVO;
 import com.training.common.vo.TrendVO;
 import com.training.service.StatsService;
@@ -103,5 +104,16 @@ public class StatsController {
             @RequestParam(defaultValue = "day") String granularity,
             @RequestParam(defaultValue = "30") Integer recentDays) {
         return Result.success(statsService.trend(granularity, recentDays));
+    }
+
+    /**
+     * 平台运行情况（在线人数/今日活跃/并发考试数）
+     * <p>对应 docx 高并发/平台运行监控亮点。</p>
+     */
+    @PreAuthorize("hasAuthority('stats:read')")
+    @GetMapping("/platform")
+    public Result<PlatformStatVO> platform() {
+        PlatformStatVO vo = statsService.platform();
+        return Result.success(vo == null ? new PlatformStatVO() : vo);
     }
 }

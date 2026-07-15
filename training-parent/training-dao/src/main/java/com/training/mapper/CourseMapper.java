@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * 课程 Mapper
  */
@@ -25,4 +27,9 @@ public interface CourseMapper extends BaseMapper<Course> {
      * 查询学员已报名的课程列表
      */
     IPage<Course> selectEnrolledCourses(IPage<Course> page, @Param("studentId") Long studentId);
+
+    /**
+     * 推荐课程（按报名数降序，仅已发布，Top-N）
+     */
+    List<Course> selectRecommend(@Param("limit") int limit);
 }
