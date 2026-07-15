@@ -22,6 +22,20 @@
           AND update_time &lt; DATE_ADD(CURDATE(), INTERVAL 1 DAY)
     </select>
 
+    <!-- ============ 平台运行情况 ============ -->
+    <!-- onlineCount: 近5分钟有学习心跳的去重学员数；todayStudyCount: 今日活跃学员数；concurrentExamCount: 进行中考试数 -->
+    <select id="selectPlatform" resultType="com.training.common.vo.PlatformStatVO">
+        SELECT
+            (SELECT COUNT(DISTINCT student_id) FROM study_record
+             WHERE deleted = 0
+               AND update_time &gt;= DATE_SUB(NOW(), INTERVAL 5 MINUTE)) AS onlineCount,
+            (SELECT COUNT(DISTINCT student_id) FROM study_record
+             WHERE deleted = 0
+               AND update_time &gt;= CURDATE()) AS todayStudyCount,
+            (SELECT COUNT(*) FROM exam_record
+             WHERE deleted = 0 AND status = 0) AS concurrentExamCount
+    </select>
+
     <!-- ============ 学员微观统计 ============ -->
     <!--
         完成率 = 已完成章节数 / 该学员已报名课程的总章节数 * 100

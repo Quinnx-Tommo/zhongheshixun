@@ -43,4 +43,18 @@
         ORDER BY e.create_time DESC
     </select>
 
+    <!-- 推荐课程：按报名数降序，报名数相同按创建时间降序 -->
+    <select id="selectRecommend" resultMap="BaseResultMap">
+        SELECT c.*
+        FROM course c
+        LEFT JOIN (
+            SELECT course_id, COUNT(*) AS cnt
+            FROM course_enroll WHERE deleted = 0
+            GROUP BY course_id
+        ) e ON e.course_id = c.id
+        WHERE c.deleted = 0 AND c.status = 1
+        ORDER BY IFNULL(e.cnt, 0) DESC, c.create_time DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

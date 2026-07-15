@@ -7,6 +7,7 @@ import com.training.common.vo.ExamStatVO;
 import com.training.common.vo.MyStatVO;
 import com.training.common.vo.OrgStatVO;
 import com.training.common.vo.OverviewVO;
+import com.training.common.vo.PlatformStatVO;
 import com.training.common.vo.StudentStatVO;
 import com.training.common.vo.TrendVO;
 import com.training.mapper.StatsMapper;
@@ -136,6 +137,19 @@ public class StatsServiceImpl implements StatsService {
         List<MyStatVO.DailyHourVO> raw = statsMapper.selectRecentDays(studentId, 7);
         // 补全缺失日期为 0（保证前端 7 个数据点都存在，趋势图不出现"示例数据"标签）
         vo.setRecent7Days(fillRecentDays(raw, 7));
+        return vo;
+    }
+
+    @Override
+    public PlatformStatVO platform() {
+        PlatformStatVO vo = statsMapper.selectPlatform();
+        if (vo == null) {
+            vo = new PlatformStatVO();
+        }
+        // COUNT 查询可能返回 null，统一兜底为 0
+        if (vo.getOnlineCount() == null) vo.setOnlineCount(0);
+        if (vo.getTodayStudyCount() == null) vo.setTodayStudyCount(0);
+        if (vo.getConcurrentExamCount() == null) vo.setConcurrentExamCount(0);
         return vo;
     }
 

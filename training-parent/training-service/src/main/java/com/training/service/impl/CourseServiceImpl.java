@@ -11,6 +11,8 @@ import com.training.service.CourseService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * 课程服务实现
  */
@@ -59,5 +61,13 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         }
         course.setStatus(status);
         return updateById(course);
+    }
+
+    @Override
+    public List<Course> recommend(int limit) {
+        // 边界钳制：默认 5，上限 20
+        if (limit <= 0) limit = 5;
+        if (limit > 20) limit = 20;
+        return baseMapper.selectRecommend(limit);
     }
 }

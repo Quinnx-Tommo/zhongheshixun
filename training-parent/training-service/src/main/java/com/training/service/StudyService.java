@@ -3,6 +3,7 @@ package com.training.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.training.common.dto.CoursePageQuery;
+import com.training.common.dto.CompleteChapterDTO;
 import com.training.common.dto.StudyProgressDTO;
 import com.training.common.entity.Course;
 import com.training.common.entity.CourseEnroll;
@@ -41,4 +42,9 @@ public interface StudyService extends IService<StudyRecord> {
      * 修复 #8：旧前端为判断 1 个 courseId 是否报名，需请求 my-courses?pageSize=100
      */
     boolean isEnrolled(Long userId, Long courseId);
+
+    /**
+     * 标记章节完成（复用 reportProgress，progress=100 + completed=true）
+     */
+    void completeChapter(Long userId, CompleteChapterDTO dto);
 }
