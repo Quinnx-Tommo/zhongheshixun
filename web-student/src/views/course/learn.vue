@@ -59,16 +59,17 @@
           </template>
 
           <div v-if="activeChapter" class="chapter-content">
-            <!-- 视频 -->
-            <video
+            <!-- 视频：vue-video-player 防快进 + 心跳上报 + 断点续播 -->
+            <VideoPlayer
               v-if="activeChapter.contentType === 1"
               :src="activeChapter.content"
-              controls
-              class="chapter-content__video"
-              @ended="handleVideoEnd"
-            >
-              您的浏览器不支持视频播放
-            </video>
+              :initial-time="currentChapterLastPos"
+              :heartbeat-interval="30"
+              :seek-threshold="5"
+              @heartbeat="onHeartbeat"
+              @ended="onVideoEnded"
+              @seek-blocked="onSeekBlocked"
+            />
             <!-- PDF -->
             <iframe
               v-else-if="activeChapter.contentType === 2"
@@ -117,7 +118,8 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getCourseDetail, getChapterList } from '@/api/course'
-import { reportProgress, getProgress } from '@/api/study'
+import { reportProgress, getProgress, completeChapter, checkEnrolled as checkEnrolledApi } from '@/api/study'
+import VideoPlayer from '@/components/VideoPlayer.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -144,6 +146,13 @@ const totalProgress = computed(() => {
   if (chapters.value.length === 0) return 0
   const done = chapters.value.filter((c) => c.finished).length
   return Math.round((done / chapters.value.length) * 100)
+})
+
+// 当前章节的断点续播位置（从 progressList 取 lastPosition）
+const currentChapterLastPos = computed(() => {
+  if (!activeChapterId.value) return 0
+  const p = progressList.value.find((pr) => pr.chapterId === activeChapterId.value)
+  return p?.lastPosition || 0
 })
 
 // 同步进度到章节
@@ -196,10 +205,38 @@ async function markFinished() {
   }
 }
 
-// 视频播放结束自动标记
-async function handleVideoEnd() {
+// 视频播放结束自动标记完成（替代旧 handleVideoEnd）
+async function onVideoEnded() {
   if (activeChapter.value && !activeChapter.value.finished) {
     await markFinished()
+  }
+}
+
+// 防快进拦截提示
+function onSeekBlocked() {
+  ElMessage.warning('不允许快进，请正常观看视频')
+}
+
+// 心跳上报：VideoPlayer 每 30 秒触发，复用 reportProgress 接口
+async function onHeartbeat({ currentTime, studyDuration, progress }) {
+  if (!activeChapterId.value) return
+  try {
+    await reportProgress({
+      courseId,
+      chapterId: activeChapterId.value,
+      progress,
+      studyDuration,
+      lastPosition: currentTime,
+      completed: false,
+    })
+    // 同步本地 progressList 的 lastPosition（断点续播实时性）
+    const p = progressList.value.find((pr) => pr.chapterId === activeChapterId.value)
+    if (p) {
+      p.lastPosition = currentTime
+      p.progress = progress
+    }
+  } catch (e) {
+    // 心跳失败静默，下次重试，不阻塞播放
   }
 }
 
@@ -241,14 +278,11 @@ async function fetchData() {
 
 /**
  * P2-8 修复：兜底校验当前用户是否已报名（后端 /course/detail 未返回 enrolled 时使用）
- * 避免直接 URL 跳过报名进入学习
+ * 避免直接 URL 跳过报名进入学习。使用轻量 /check-enrolled 接口，不拉取整页 my-courses。
  */
 async function checkEnrolled() {
   try {
-    const { getMyCourses } = await import('@/api/study')
-    const res = await getMyCourses({ pageNum: 1, pageSize: 200 })
-    const list = res?.records || res?.list || res || []
-    return Array.isArray(list) && list.some((c) => String(c.id) === String(courseId))
+    return !!(await checkEnrolledApi(courseId))
   } catch (e) {
     return false
   }
@@ -292,12 +326,6 @@ onMounted(fetchData)
 }
 .chapter-content {
   min-height: 400px;
-}
-.chapter-content__video {
-  width: 100%;
-  max-height: 500px;
-  background: #000;
-  border-radius: 4px;
 }
 .chapter-content__pdf {
   width: 100%;
