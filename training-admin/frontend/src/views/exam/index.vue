@@ -79,7 +79,6 @@
         <el-table-column label="操作" width="380" fixed="right" align="center">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-            <el-button type="success" link @click="handleGenerate(row)">自动组卷</el-button>
             <!-- P1-5 修复：草稿态显示"发布"；已发布态显示"下架"；下架态不可再发布 -->
             <el-button
               v-if="row.status === 0"
@@ -184,37 +183,6 @@
         <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
       </template>
     </el-dialog>
-
-    <!-- 自动组卷弹窗 -->
-    <el-dialog
-      v-model="generateDialogVisible"
-      title="自动组卷"
-      width="600px"
-      :close-on-click-modal="false"
-    >
-      <el-form label-width="100px">
-        <el-form-item label="目标考试">
-          <el-input :value="generateTarget?.title" disabled />
-        </el-form-item>
-        <el-form-item label="知识点">
-          <el-checkbox-group v-model="selectedKnowledgeIds">
-            <el-checkbox
-              v-for="kp in knowledgeOptions"
-              :key="kp.id"
-              :value="kp.id"
-            >
-              {{ kp.title }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="generateDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="generating" @click="handleGenerateConfirm">
-          生成试卷
-        </el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -228,7 +196,6 @@ import {
   createExam,
   updateExam,
   deleteExam,
-  generateExamPaper,
   publishExam,      // P1-5 修复：发布考试
   offlineExam,      // P1-5 修复：下架考试
   getKnowledgePage
@@ -274,11 +241,6 @@ const formRules: FormRules = {
   passScore: [{ required: true, message: '请输入及格分', trigger: 'blur' }],
   duration: [{ required: true, message: '请输入时长', trigger: 'blur' }]
 }
-
-const generateDialogVisible = ref(false)
-const generateTarget = ref<any>(null)
-const selectedKnowledgeIds = ref<number[]>([])
-const generating = ref(false)
 
 const questionCount = (row: any) => {
   if (!row.questionIds) return 0
@@ -437,32 +399,9 @@ async function handleDelete(row: any) {
   }
 }
 
-function handleGenerate(row: any) {
-  generateTarget.value = row
-  selectedKnowledgeIds.value = []
-  generateDialogVisible.value = true
-}
-
-async function handleGenerateConfirm() {
-  if (!generateTarget.value) return
-  if (selectedKnowledgeIds.value.length === 0) {
-    ElMessage.warning('请至少选择一个知识点')
-    return
-  }
-  generating.value = true
-  try {
-    await generateExamPaper({
-      examId: generateTarget.value.id,
-      knowledgePointIds: selectedKnowledgeIds.value
-    })
-    ElMessage.success('组卷成功')
-    generateDialogVisible.value = false
-    fetchList()
-  } catch (e) {
-    // 错误已在 request 拦截器处理
-  } finally {
-    generating.value = false
-  }
+function handleGenerate(_row: any) {
+  // 自动组卷按钮已移除：学员开考时由后端 startExam 实时按知识点抽题
+  // 保留空函数避免其他地方误调用时报错
 }
 
 /**

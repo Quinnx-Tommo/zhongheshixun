@@ -1,7 +1,7 @@
 # 数据库设计文档（dev-database.md）
 
 > 四川省基层卫生人员网络培训平台 — 数据库设计与实现手册
-> 技术栈：Spring Boot + MySQL 8.0，共 **18 张表**（v1.3.0 新增 consult_keyword）
+> 技术栈：Spring Boot + MySQL 8.0，共 **17 张表**（v1.3.0 新增 consult_keyword；v1.4.0 移除 knowledge_base，咨询改为 LongCat AI 方案）
 > 配套文档：[`开发文档.md`](./开发文档.md) | [`dev-backend.md`](./dev-backend.md) | [`dev-api.md`](./dev-api.md)
 
 ---
@@ -34,10 +34,9 @@
 | 12 | `exam_answer` | 答题记录表 | 示例 2 条 | `record_id → exam_record.id`, `question_id → question.id` |
 | 13 | `train_plan` | 培训计划表 | 示例 1 条 | — |
 | 14 | `plan_course` | 计划关联课程表 | 示例 2 条 | `plan_id → train_plan.id`, `course_id → course.id` |
-| 15 | `knowledge_base` | 知识库表（智能咨询） | 示例 2 条 | — |
-| 16 | `consult_record` | 咨询记录表（含 SLA） | 示例 1 条 | `student_id → sys_user.id` |
-| 17 | `consult_keyword` | **咨询关键词路由配置（v1.3.0 新增）** | 预置 6 条 | — |
-| 18 | `resource_file` | 资源文件表 | 示例 2 条 | `course_id → course.id`, `uploader_id → sys_user.id` |
+| 15 | `consult_record` | 咨询记录表（含 SLA） | 示例 1 条 | `student_id → sys_user.id` |
+| 16 | `consult_keyword` | **咨询关键词路由配置（v1.3.0 新增）** | 预置 6 条 | — |
+| 17 | `resource_file` | 资源文件表 | 示例 2 条 | `course_id → course.id`, `uploader_id → sys_user.id` |
 
 ---
 
@@ -562,42 +561,7 @@ CREATE TABLE `plan_course` (
 
 ---
 
-### 15. knowledge_base — 知识库表
-
-**说明**：智能咨询知识库，支持关键词匹配与分类检索。
-
-```sql
-CREATE TABLE `knowledge_base` (
-  `id`          BIGINT       NOT NULL AUTO_INCREMENT        COMMENT '知识ID',
-  `question`    VARCHAR(500) NOT NULL                       COMMENT '问题',
-  `answer`      TEXT         NOT NULL                       COMMENT '答案',
-  `keywords`    VARCHAR(500) DEFAULT NULL                   COMMENT '逗号分隔关键词',
-  `category`    VARCHAR(64)  DEFAULT NULL                   COMMENT '分类',
-  `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_category` (`category`),
-  FULLTEXT KEY `ft_question` (`question`, `keywords`) WITH PARSER ngram
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='知识库表';
-```
-
-**字段说明**
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK | 知识主键 |
-| question | VARCHAR(500) | NOT NULL | 问题 |
-| answer | TEXT | NOT NULL | 答案 |
-| keywords | VARCHAR(500) | — | 逗号分隔关键词 |
-| category | VARCHAR(64) | — | 分类 |
-| create_time | DATETIME | NOT NULL | 创建时间 |
-| update_time | DATETIME | NOT NULL | 更新时间 |
-
-**索引说明**：`ft_question` 为 ngram 全文索引，支持中文关键词检索。
-
----
-
-### 16. consult_record — 咨询记录表
+### 15. consult_record — 咨询记录表
 
 **说明**：学员咨询记录，**v2.0 新增 SLA 计时字段**，支持智能问答与人工转接。
 
@@ -639,7 +603,7 @@ CREATE TABLE `consult_record` (
 
 ---
 
-### 17. consult_keyword — 咨询关键词路由配置表（v1.3.0 新增）
+### 16. consult_keyword — 咨询关键词路由配置表（v1.3.0 新增）
 
 **说明**：咨询关键词路由配置表（方案 A：AI 优先 + 关键词转人工）。学员提问命中 `to_human` 关键词时直接创建人工工单，跳过 AI 自动回复。预置 6 条转人工关键词（转人工/找老师/人工客服/真人/人工/客服），支持后台扩展。
 
@@ -687,7 +651,7 @@ CREATE TABLE `consult_keyword` (
 
 ---
 
-### 18. resource_file — 资源文件表
+### 17. resource_file — 资源文件表
 
 **说明**：课程关联的资源文件（视频/文档/PPT/PDF）。
 

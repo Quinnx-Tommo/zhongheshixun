@@ -1,7 +1,7 @@
 # D - 学生丁 - 手册
 
 > **对应分工文档**：`../综合实训分工方案/04-学生丁-咨询与小程序.md`  
-> **目标**：丁（学生 D）跑完本测试，验证「咨询问答 + 小程序」模块 100% 可用（重点：关键词匹配 + SLA 告警 + 小程序 10 页）
+> **目标**：丁（学生 D）跑完本测试，验证「咨询问答 + 小程序」模块 100% 可用（重点：LongCat AI 回复 + 转人工 + SLA 告警 + 小程序 10 页）
 
 ---
 
@@ -18,15 +18,15 @@
 
 ## 二、测试项（共 20 步）
 
-### 2.1 知识库管理（管理后台侧）
+### 2.1 LongCat AI 配置检查（管理后台侧）
 
 | # | 操作 | 预期 | 实际 | ✅/❌ |
 |---|------|------|------|------|
-| 1 | admin 登录 →「知识库管理」→ 列表 | 看到知识条目（含 keywords 字段） | | |
-| 2 | 点「添加知识条目」→ title=感冒用药 / keywords=感冒,发烧,头痛 / answer=扑热息痛... → 保存 | 成功 | | |
-| 3 | 再添加高血压用药指导 / keywords=高血压,降压药 | 成功 | | |
-| 4 | 看 keywords 字段是逗号分隔（英文标点）| 是半角逗号 | | |
-| 5 | 点「编辑知识条目」→ 改 keywords → 保存 | 成功 | | |
+| 1 | 检查后端 application.yml 中 `longcat.ai.enabled=true` | 配置开关已启用 | | |
+| 2 | 检查 LongCat AI API Key 已配置 | API Key 非空且有效 | | |
+| 3 | 管理后台 →「咨询管理」→ 列表 | 看到历史咨询工单 | | |
+| 4 | 转人工关键词已加载（"转人工/找老师"等） | 关键词列表非空 | | |
+| 5 | 启动后端服务，确认无报错 | 服务正常启动 | | |
 
 ### 2.2 ⭐ 智能问答（小程序侧）
 
@@ -38,9 +38,9 @@
 | 9 | 输入 student01/123456 登录 | 登录成功，跳转首页 | | |
 | 10 | ⚠️ 小程序 baseURL 是 9899 | 请求能发通 | | |
 | 11 | 进入「咨询」tab | 聊天 UI 显示（输入框 + 发送按钮） | | |
-| 12 | ⭐ 问"高血压怎么用药" | 显示打字机效果 1.5 秒 → 返回预设答案 | | ⭐ |
+| 12 | ⭐ 问"高血压怎么用药" | 显示打字机效果 1.5 秒 → LongCat AI 返回答案 | | ⭐ |
 | 13 | F12（开发者工具 Network）看到 `POST /api/consult/ask` | 返回 isAuto=true | | |
-| 14 | ⭐ 问刁钻问题（知识库没有的）| 返回"正在为您转接人工客服..." | | ⭐ |
+| 14 | ⭐ 问"请帮我转人工"| 返回"正在为您转接人工客服..." | | ⭐ |
 | 15 | DB：`SELECT * FROM consult_record ORDER BY id DESC LIMIT 1` | 看到 is_auto=0 的记录 | | |
 
 ### 2.3 ⭐ SLA 超时告警（管理后台侧）
@@ -91,9 +91,6 @@
 ### 2.7 数据库验证
 
 ```sql
--- 知识库
-SELECT id, title, keywords, LEFT(answer,30) AS snippet FROM knowledge_base;
-
 -- 咨询记录（⭐ 重点）
 SELECT 
   id, user_id, question, 
@@ -103,9 +100,11 @@ SELECT
 FROM consult_record ORDER BY id DESC LIMIT 10;
 
 -- 预期：
--- knowledge_base: 2+ 条（感冒用药 + 高血压）
+-- consult_record: 至少 1 条 is_auto=1（LongCat AI 回复）的记录
 -- consult_record: 至少 1 条 is_auto=0（转人工）的记录，sla_exceeded=1
 ```
+
+> 已废弃：原 `knowledge_base` 表查询已移除（DDL 已删除）。
 
 ---
 
@@ -113,15 +112,15 @@ FROM consult_record ORDER BY id DESC LIMIT 10;
 
 ### ✅ 全部通过：丁的模块是综合实训展示亮点
 
-> 关键通过项：⭐12（关键词匹配命中）、⭐14（转人工）、⭐18（SLA 标红）、⭐20（回复成功）、⭐22-33（小程序 10 页走通）
+> 关键通过项：⭐12（LongCat AI 回复）、⭐14（转人工）、⭐18（SLA 标红）、⭐20（回复成功）、⭐22-33（小程序 10 页走通）
 
 ### ❌ 部分失败：逐条记录 TODO
 
 | 失败步骤 | 查阅章节 | 重点 |
 |----------|----------|------|
-| 1-5 | 4.2 知识库管理接口 | KnowledgeBaseController |
-| 12-15 | 5.1 关键词匹配算法 | ConsultServiceImpl.ask() |
-| 18 | 5.2 SLA 告警机制 | ConsultController / list.vue |
+| 1-5 | 4.4 咨询管理接口 | ConsultController + LongCat AI 配置 |
+| 12-15 | 4.1 智能问答接口 | ConsultServiceImpl.ask()（三段式流程） |
+| 18 | 4.2 SLA 告警机制 | ConsultController / list.vue |
 | 20 | 4.3 人工回复接口 | ConsultController.reply() |
 | 22-33 | 小程序详解 | 各 page.js |
 | 34-40 | 小程序技术点 | request.js / app.js |

@@ -43,8 +43,9 @@ export function contentTypeName(t) {
 /**
  * 解析题目选项
  *
- * 同时兼容两种后端历史格式：
- *   - JSON 数组：["A.文本","B.文本"]
+ * 兼容三种后端历史格式：
+ *   - 对象数组（admin 后台新增试题保存格式）：[{key:"A", value:"文本"}, ...]
+ *   - 字符串数组（旧格式）：["A.文本","B.文本"]
  *   - 拼合格式：A.文本|B.文本
  * 统一输出 [{label, text}]，供 el-radio / el-checkbox 渲染。
  */
@@ -55,14 +56,22 @@ export function parseOptions(options) {
     const parsed = JSON.parse(options)
     if (Array.isArray(parsed)) {
       return parsed.map((item) => {
-        const m = String(item).match(/^([A-D])[.、\s]*(.+)$/)
-        return m ? { label: m[1], text: m[2] } : { label: item, text: '' }
+        // 对象格式：{key, value}（admin 后台 question/index.vue 保存格式）
+        if (item && typeof item === 'object' && !Array.isArray(item)) {
+          return {
+            label: String(item.key ?? item.label ?? ''),
+            text: String(item.value ?? item.text ?? '')
+          }
+        }
+        // 字符串格式："A.文本" / "A、文本" / "A 文本"
+        const m = String(item).match(/^([A-Za-z])[.、\s]*(.+)$/)
+        return m ? { label: m[1].toUpperCase(), text: m[2] } : { label: String(item), text: '' }
       })
     }
   } catch (e) {}
   // 拼合格式：A.文本|B.文本
   return String(options).split('|').map((item) => {
-    const m = item.match(/^([A-D])[.、\s]*(.+)$/)
-    return m ? { label: m[1], text: m[2] } : { label: item, text: '' }
+    const m = item.match(/^([A-Za-z])[.、\s]*(.+)$/)
+    return m ? { label: m[1].toUpperCase(), text: m[2] } : { label: item, text: '' }
   })
 }

@@ -70,8 +70,6 @@ DROP TABLE IF EXISTS course;
 DROP TABLE IF EXISTS study_record;
 -- 资源文件表
 DROP TABLE IF EXISTS resource_file;
--- 知识库表
-DROP TABLE IF EXISTS knowledge_base;
 -- 培训讲师表
 DROP TABLE IF EXISTS teacher;
 -- 角色-权限关联表
@@ -325,18 +323,6 @@ CREATE TABLE plan_course (
   KEY idx_plan_course_course (course_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='计划关联课程表';
 
--- 知识库表
-CREATE TABLE knowledge_base (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  question VARCHAR(500) NOT NULL COMMENT '问题',
-  answer TEXT NOT NULL COMMENT '回答',
-  keywords VARCHAR(200) DEFAULT NULL COMMENT '关键词(逗号分隔,用于匹配)',
-  category VARCHAR(50) DEFAULT NULL COMMENT '分类',
-  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除:0 正常 1 已删'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='知识库表';
-
 -- 咨询记录表
 CREATE TABLE consult_record (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -346,8 +332,10 @@ CREATE TABLE consult_record (
   is_auto TINYINT DEFAULT 1 COMMENT '类型:1 智能回答 2 人工回答 0 待处理',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
   reply_time DATETIME COMMENT '回复时间(用于 SLA 统计)',
+  sla_exceeded TINYINT NOT NULL DEFAULT 0 COMMENT 'SLA超时标记:0 否 1 是(由定时任务扫描 create_time 距今超过 SLA_MINUTES 阈值时自动标记)',
   deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除:0 正常 1 已删',
-  KEY idx_consult_student (student_id)
+  KEY idx_consult_student (student_id),
+  KEY idx_sla_exceeded (sla_exceeded)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='咨询记录表';
 
 -- 咨询关键词路由配置表（方案A: AI优先+关键词转人工）
@@ -504,14 +492,6 @@ INSERT INTO plan_course (id,plan_id,course_id,sort_order,is_required,create_time
 (2,1,2,2,1,'2026-07-09 00:00:00',0),
 (3,1,3,3,0,'2026-07-09 00:00:00',0);
 
--- 知识库数据(5 条,智能问答)
-INSERT INTO knowledge_base (id,question,answer,keywords,category,create_time,deleted) VALUES
-(1,'如何报名课程?','在课程列表中选择课程,点击"报名"按钮即可报名。','报名,课程,如何报名','平台使用','2026-07-09 00:00:00',0),
-(2,'考试不及格怎么办?','可以参加重考,具体重考次数以考试设置为准。','考试,不及格,重考','考试相关','2026-07-09 00:00:00',0),
-(3,'学习进度如何查看?',"在'我的课程'中可以查看每门课程的学习进度。","学习进度,查看,我的课程",'学习相关','2026-07-09 00:00:00',0),
-(4,'忘记密码怎么办?','请联系系统管理员重置密码。','密码,忘记,重置','账户相关','2026-07-09 00:00:00',0),
-(5,'如何下载离线课件?','在课程详情页点击"下载"按钮即可。','下载,离线,ZIP','平台使用','2026-07-09 00:00:00',0);
-
 -- 资源文件数据(3 行)
 INSERT INTO resource_file (id,course_id,file_name,file_url,file_type,file_size,uploader_id,create_time,deleted) VALUES
 (1,1,'第一章课件.pdf',           '/resource/ch1.pdf',  'pdf',     2048000,2,'2026-07-09 00:00:00',0),
@@ -574,17 +554,19 @@ INSERT INTO study_record (student_id,course_id,chapter_id,progress,study_duratio
 INSERT INTO exam_record (id,student_id,exam_id,paper_id,score,status,start_time,submit_time) VALUES
 (2, 5, 2, NULL, 0, 0, '2026-07-09 16:00:00', NULL);
 
--- consult_record: SLA 演示 (2 条已人工回复 reply_time <60 秒 + 1 条 is_auto=0 待处理)
-INSERT INTO consult_record (student_id,question,answer,is_auto,create_time,reply_time) VALUES
+-- consult_record: SLA 演示
+-- 2 条已人工回复 (reply_time - create_time < 60 秒, sla_exceeded=0)
+-- 1 条待处理且已超时 (create_time 距今远超 1 分钟, sla_exceeded=1)
+INSERT INTO consult_record (student_id,question,answer,is_auto,create_time,reply_time,sla_exceeded) VALUES
 (4,'如何重考不及格的考试?',
    '登录后进入"考试中心"，找到不及格考试，若 max_retry 未用尽可点"重考"按钮。剩余重考次数以考试设置为准。',
-   2,'2026-07-09 09:00:00','2026-07-09 09:00:45'),
+   2,'2026-07-09 09:00:00','2026-07-09 09:00:45',0),
 (6,'离线课件下载后怎么观看?',
    '进入"课程详情"页，点击"下载"保存 ZIP 包（仅 offline_filename 非空的课程支持），离线状态下仍可进入课程播放页',
-   2,'2026-07-09 10:30:00','2026-07-09 10:30:38'),
+   2,'2026-07-09 10:30:00','2026-07-09 10:30:38',0),
 (8,'少数民族语言课程什么时候上线?',
    '目前平台已完成多语言接口预留，具体语言包上线以省卫健委公告为准。已转产品开发团队跟进。',
-   0,'2026-07-09 14:00:00',NULL);
+   0,'2026-07-09 14:00:00',NULL,1);
 
 -- 咨询关键词路由预置数据（命中即转人工）
 INSERT INTO consult_keyword (keyword, action, sort_order, enabled) VALUES

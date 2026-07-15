@@ -55,7 +55,7 @@ frontend/
     │   ├── question.ts        ← 试题接口
     │   ├── exam.ts            ← 考试接口
     │   ├── plan.ts            ← 培训计划接口
-    │   ├── consult.ts         ← 咨询/知识库接口
+    │   ├── consult.ts         ← 咨询接口
     │   └── stats.ts           ← 统计接口
     ├── components/             ← 公共组件
     │   ├── Pagination.vue      ← 分页组件
@@ -1318,7 +1318,6 @@ async function onGenerate(exam: any) {
 | 咨询列表 | 按状态/关键词筛选 |
 | **SLA 超时标红** | 超过 slaHours（默认 24h）未回复的行标红显示 |
 | 人工回复 | 弹窗填写回复内容，提交后状态变"已回复" |
-| 知识库管理 | 关键词 + 内容，支撑智能匹配 |
 
 **关键代码片段 — SLA 超时标红 + 人工回复弹窗：**
 
@@ -1677,8 +1676,6 @@ export const getConsultList = (params: any) => http.get('/admin/consult/list', p
 export const replyConsult = (data: { id: number; reply: string }) =>
   http.post('/admin/consult/reply', data)
 export const getSlaList = (params: any) => http.get('/admin/consult/sla-list', params)
-export const getKnowledgeBaseList = (params: any) => http.get('/admin/knowledge-base/list', params)
-export const addKnowledgeBase = (data: any) => http.post('/admin/knowledge-base/add', data)
 ```
 
 ### src/api/stats.ts

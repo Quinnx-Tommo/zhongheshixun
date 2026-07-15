@@ -163,6 +163,9 @@ async function fetchProfile() {
     profile.value = await getProfile()
     form.phone = profile.value.phone || ''
     form.email = profile.value.email || ''
+    // 同步更新 userStore，让右上角用户名/头像即时刷新
+    userStore.userInfo = { ...userStore.userInfo, ...profile.value }
+    localStorage.setItem('userInfo', JSON.stringify(userStore.userInfo))
   } catch (e) {
     ElMessage.warning('个人资料加载失败')
   } finally {

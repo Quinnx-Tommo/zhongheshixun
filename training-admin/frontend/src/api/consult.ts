@@ -15,32 +15,7 @@ export function replyConsult(data: { id: number; reply: string }) {
   return request({ url: '/admin/consult/reply', method: 'POST', data })
 }
 
-// SLA 超时告警列表
-export function getSlaAlert(slaHours = 24) {
-  return request({ url: '/admin/consult/sla-alert', method: 'GET', params: { slaHours } })
-}
-
-// 知识库分页
-export function getKnowledgePage(params: {
-  pageNum: number
-  pageSize: number
-  keyword?: string
-  category?: string
-}) {
-  return request({ url: '/admin/consult/knowledge-base/list', method: 'GET', params })
-}
-
-// 新增知识库
-export function createKnowledge(data: any) {
-  return request({ url: '/admin/consult/knowledge-base', method: 'POST', data })
-}
-
-// 编辑知识库
-export function updateKnowledge(data: any) {
-  return request({ url: '/admin/consult/knowledge-base', method: 'PUT', data })
-}
-
-// 删除知识库
-export function deleteKnowledge(id: number) {
-  return request({ url: `/admin/consult/knowledge-base/${id}`, method: 'DELETE' })
+// SLA 超时告警列表（默认 1 分钟阈值，与教师要求 SLA < 1min 一致）
+export function getSlaAlert(slaMinutes = 1) {
+  return request({ url: '/admin/consult/sla-alert', method: 'GET', params: { slaMinutes } })
 }

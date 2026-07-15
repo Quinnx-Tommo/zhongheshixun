@@ -125,6 +125,17 @@ const route = useRoute()
 const router = useRouter()
 const courseId = route.params.id
 
+// 记录最近学习顺序（首页"最近学习"按此排序，与小程序口径一致）
+;(() => {
+  if (!courseId) return
+  const key = 'recentCourseIds'
+  const ids = JSON.parse(localStorage.getItem(key) || '[]')
+  const idx = ids.indexOf(courseId)
+  if (idx > -1) ids.splice(idx, 1)
+  ids.unshift(courseId)
+  localStorage.setItem(key, JSON.stringify(ids.slice(0, 20)))
+})()
+
 const loading = ref(false)
 const progressLoading = ref(false)
 const course = ref({})
