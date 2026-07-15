@@ -385,6 +385,29 @@ Authorization: Bearer <token>
 | 响应 | 文件流（加密 ZIP 离线包），支持断点续传（Range 请求） |
 | 说明 | 仅 `offlineFlag=1` 的课程可下载。记录下载日志用于进度回传。 |
 
+### 5.10 小程序 - 推荐课程（按报名数 Top-N）
+
+| 项目 | 说明 |
+|------|------|
+| 接口路径 | `GET /api/course/recommend` |
+| 请求参数 (Query) | `limit`（可选，默认 5，上限 20） |
+| 响应 (JSON) | `[{ "id": 1, "title": "...", "teacherName": "...", "courseType": 2, "totalHours": 40, "status": 1, "offlineFlag": 0, ... }, ...]` |
+| 鉴权 | 需登录（学员 Token） |
+| 说明 | 仅返回 `status=1` 已发布且 `deleted=0` 的课程，按 `course_enroll` 报名数降序、报名数相同时按 `create_time` 降序，取 Top-N。后端对 `limit` 做边界钳制（<=0 取 5，>20 取 20）。响应字段含 `teacherName`（后端 JOIN `sys_user` 填充）。 |
+
+**响应示例：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    { "id": 1, "title": "基层常见疾病诊治规范", "teacherName": "张医生", "courseType": 2, "totalHours": 40, "status": 1 },
+    { "id": 2, "title": "公共卫生服务规范", "teacherName": "李主任", "courseType": 2, "totalHours": 30, "status": 1 }
+  ]
+}
+```
+
 ---
 
 ## 6. 章节模块
@@ -691,6 +714,7 @@ Authorization: Bearer <token>
 | 请求参数 (JSON) | `{ "courseId": 1, "chapterId": 1, "progress": 80, "studyDuration": 600, "lastPosition": 580, "completed": false }` |
 | 响应 (JSON) | `{ "code": 200, "message": "success" }` |
 | 说明 | 前端视频播放中每 30 秒或进度变化 >= 5% 时上报一次；`completed=true` 表示章节学完；后端 upsert 到 `study_record` 表。 |
+| 上限钳制 | 后端对 `progress` 做防御性钳制：`progress > 100` 时强制改为 `100`；`progress >= 100` 时强制 `completed=1`。避免前端心跳上报异常值导致进度超过 100% 或已完成章节被回退。不查 `chapter.duration` 表，避免每次心跳额外的 DB 开销。 |
 
 **请求示例：**
 
@@ -705,6 +729,27 @@ Authorization: Bearer <token>
 }
 ```
 
+**web 端心跳上报机制（VideoPlayer 组件，2026-07-14 新增）：**
+
+web 学员端（`web-student/`）的视频播放器 `VideoPlayer.vue` 在播放过程中通过本接口上报进度，字段映射与触发时机如下：
+
+| 字段 | 来源 | 说明 |
+|------|------|------|
+| `lastPosition` | `Math.floor(player.currentTime())` | 视频当前播放位置（秒），用于断点续播 |
+| `studyDuration` | `studyDurationAcc`（累加器） | 本次会话累计学习时长（秒），后端 upsert 累加到 `study_record.study_duration` |
+| `progress` | `Math.min(100, Math.floor(currentTime / duration * 100))` | 章节完成百分比，后端钳制上限 100 |
+| `completed` | 心跳固定 `false`；`ended` 事件触发时由 `markFinished` 上报 `true` | 避免心跳误标完成 |
+
+**触发时机（三层）：**
+
+1. **30 秒定时器心跳**：`player.on('play')` 启动 `setInterval(30s)`，每次 `studyDurationAcc += 30` 并上报；`player.on('pause')` 清除定时器并立即上报一次（保存断点）。
+2. **暂停即时上报**：`onPause` 调用 `emitHeartbeat()` 立即 POST，确保用户切走/暂停时 `lastPosition` 不丢失。
+3. **播放结束自动完成**：`player.on('ended')` → `emit('ended')` → `learn.vue onVideoEnded` → `markFinished`（上报 `progress=100, completed=true`），章节自动标记 ✓。
+
+**断点续播联动**：页面加载时 `getProgress` 取回 `lastPosition`，作为 `initialTime` 传入 VideoPlayer；`player.ready` 后监听 `loadedmetadata` 事件（避免 metadata 未加载时 `currentTime` 被重置），再 `player.currentTime(initialTime)` 恢复。防快进守卫 `lastValidTime` 初始值同步设为 `initialTime`，避免断点位置被误判为快进而回退到 0。
+
+**防快进联动**：`createSeekGuard` 监听 `seeking` 事件，正向跳跃超过 5 秒阈值时回退到 `lastValidTime` 并 emit `seek-blocked`（前端 ElMessage 提示"不允许快进，请正常观看视频"）。回退（重听）允许，不拦截。
+
 ### 12.2 小程序 - 查询章节学习进度
 
 | 项目 | 说明 |
@@ -713,6 +758,36 @@ Authorization: Bearer <token>
 | 请求参数 | 路径参数 `courseId` |
 | 响应 (JSON) | `[{ "chapterId": 1, "progress": 100, "studyDuration": 1800, "lastPosition": 0, "completed": true }, ...]` |
 | 说明 | 返回当前学员在某课程下所有章节的学习进度，用于学习页恢复播放位置与章节完成状态。 |
+
+### 12.3 小程序 - 标记章节完成
+
+| 项目 | 说明 |
+|------|------|
+| 接口路径 | `POST /api/study/complete-chapter` |
+| 请求参数 (JSON) | `{ "courseId": 1, "chapterId": 3 }` |
+| 响应 (JSON) | `{ "code": 200, "message": "success" }` |
+| 鉴权 | 需登录（学员 Token） |
+| 说明 | 学员点击"标记为已学完"或视频播放结束时调用。等价于 `POST /api/study/progress` 传 `{ progress: 100, completed: true }`，后端通过组合复用 `reportProgress` 实现，保证 upsert + 上限校验逻辑一致。 |
+| 校验 | `courseId` 和 `chapterId` 均为 `@NotNull`。 |
+
+**请求示例：**
+
+```json
+{
+  "courseId": 1,
+  "chapterId": 3
+}
+```
+
+### 12.4 小程序 - 检查是否已报名课程（轻量接口）
+
+| 项目 | 说明 |
+|------|------|
+| 接口路径 | `GET /api/study/check-enrolled` |
+| 请求参数 (Query) | `courseId`（必填） |
+| 响应 (JSON) | `{ "code": 200, "data": true }` 或 `{ "code": 200, "data": false }` |
+| 鉴权 | 需登录（学员 Token） |
+| 说明 | 轻量报名状态查询，底层走 `course_enroll` 表 `COUNT`，仅返回 boolean。用于学习页 `learn.vue` 进入时校验当前学员是否已报名，替代旧版 `getMyCourses({pageSize: 200})` 拉取整页列表的兜底逻辑，避免无谓的数据传输。 |
 
 ---
 
@@ -782,6 +857,32 @@ Authorization: Bearer <token>
 | 请求参数 | 无（从 Token 获取当前学员） |
 | 响应 (JSON) | `{ "totalStudyHours": 120, "completedCourses": 8, "examCount": 5, "avgScore": 82, "rankPercent": 0.15 }` |
 | 说明 | 学员个人学习时长 / 完成课程数 / 考试数 / 平均分 / 排名百分位。 |
+
+### 12.8 平台实时统计（在线 / 今日活跃 / 考试并发）
+
+| 项目 | 说明 |
+|------|------|
+| 接口路径 | `GET /admin/stats/platform` |
+| 请求参数 | 无 |
+| 响应 (JSON) | `{ "onlineCount": 12, "todayStudyCount": 156, "concurrentExamCount": 1 }` |
+| 鉴权 | 需登录（管理员 Token，`stats:read` 权限） |
+| 说明 | 用于管理后台 Dashboard 顶部实时统计卡片。三个字段均通过单条 SQL 子查询聚合，避免多次往返。 |
+| 字段语义 | `onlineCount` = 近 5 分钟内有 `study_record.update_time` 活跃的去重学员数（5 分钟活跃用户口径，替代 Redis 在线集合）；`todayStudyCount` = 当天 0 点至今有学习记录的去重学员数；`concurrentExamCount` = `exam_record.status=0`（进行中）的考试记录数。 |
+| 兜底 | 三个字段在空表时 SQL `COUNT` 可能返回 `null`，Service 层统一兜底为 `0`。 |
+
+**响应示例：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "onlineCount": 12,
+    "todayStudyCount": 156,
+    "concurrentExamCount": 1
+  }
+}
+```
 
 ---
 
